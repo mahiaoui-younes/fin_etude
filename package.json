@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "start": "node server.js",
     "build:css": "tailwindcss -i ./css/styles.css -o ./css/tailwind.build.css --minify",
     "dev:css": "tailwindcss -i ./css/styles.css -o ./css/tailwind.build.css --watch",
     "test": "node tests/test-utils.js"

@@ -471,8 +471,8 @@ const server = http.createServer(async (req, res) => {
 // ── Startup ──────────────────────────────────────────────────────────────
 // ═════════════════════════════════════════════════════════════════════════
 
-server.listen(PORT, '127.0.0.1', () => {
-  log.info('server', `EpitopX AI dev server running at http://127.0.0.1:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  log.info('server', `EpitopX AI dev server running at http://0.0.0.0:${PORT}`);
   log.info('server', `API proxy: /api/* → ${REMOTE_API}/api/*`);
   log.info('server', `UniProt proxy: /api/uniprot/* → rest.uniprot.org (cached, throttled)`);
   log.info('server', `NCBI proxy: /api/ncbi/* → eutils.ncbi.nlm.nih.gov (cached, throttled)`);

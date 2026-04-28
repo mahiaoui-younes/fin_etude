@@ -42,7 +42,7 @@ var API = typeof API !== 'undefined' ? API : (() => {
 
   // ── Fetch with retry & dedup ────────────────────────────────────────────
   async function fetchJSON(url, options = {}, retries = 2) {
-    const token = localStorage.getItem('authToken');
+    const token = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
     const headers = { ...(options.headers || {}) };
     if (token) headers['Authorization'] = `Token ${token}`;
 
@@ -485,7 +485,7 @@ var API = typeof API !== 'undefined' ? API : (() => {
         formData.append('cif_file', cif_file);
       }
 
-      const token = localStorage.getItem('authToken');
+      const token = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
       const headers = {};
       if (token) headers['Authorization'] = `Token ${token}`;
 
@@ -537,7 +537,7 @@ var API = typeof API !== 'undefined' ? API : (() => {
   // --- API : Supprimer une protéine ---
   async function deleteProtein(id) {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Token ${token}`;
       const res = await fetch(`${API_BASE_URL}/${id}/`, { method: 'DELETE', headers });

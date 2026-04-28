@@ -129,7 +129,8 @@
   // --- Create Protein Modal ---
   window.openCreateProteinModal = function () {
     const _tok = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
-    if (!_tok) {
+    const _session = sessionStorage.getItem('_authSession') || localStorage.getItem('authUser');
+    if (!_tok && !_session) {
       Utils.showToast('Vous devez être connecté pour créer une protéine', 'warning', 4000);
       setTimeout(() => { window.location.href = 'login.html'; }, 2000);
       return;

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TheilAI-Struct — Connexion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    .auth-bg {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 50%, #f0f9ff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 15% 25%, rgba(59,130,246,0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 75%, rgba(13,148,136,0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 60%);
+      z-index: 0;
+    }
+    .auth-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(229,231,235,0.8);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.07), 0 4px 20px rgba(59,130,246,0.06);
+      animation: card-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      padding: 0.625rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .social-btn:hover {
+      background: #f1f5f9;
+      border-color: #93c5fd;
+      color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .input-wrapper .input-field {
+      padding-left: 2.75rem;
+    }
+    .input-wrapper .input-toggle {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper .input-toggle:hover {
+      color: #475569;
+    }
+    .floating-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: orb-float 8s ease-in-out infinite;
+    }
+    @keyframes orb-float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%       { transform: translateY(-20px) scale(1.05); }
+    }
+    .dna-decoration {
+      position: absolute;
+      font-size: 5rem;
+      opacity: 0.04;
+      user-select: none;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="font-sans" style="position:relative;">
+
+  <div class="auth-bg flex items-center justify-center px-4 py-12">
+
+    <!-- Decorative orbs -->
+    <div class="floating-orb w-64 h-64 bg-blue-400" style="top: -5%; right: 10%; animation-delay: 0s;"></div>
+    <div class="floating-orb w-48 h-48 bg-teal-400" style="bottom: 5%; left: 5%; animation-delay: 3s;"></div>
+    <div class="dna-decoration" style="top: 10%; left: 2%;">🧬</div>
+    <div class="dna-decoration" style="bottom: 8%; right: 3%; font-size: 4rem;">🔬</div>
+
+    <div class="w-full max-w-md relative z-10">
+
+      <!-- Logo / Brand -->
+      <div class="text-center mb-8">
+        <a href="index.html" class="inline-flex flex-col items-center gap-2 group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform">
+            🧬
+          </div>
+          <span class="gradient-text text-2xl font-bold">TheilAI-Struct</span>
+          <span class="text-gray-400 text-sm" data-i18n="login.subtitle">Analyse protéique structurale</span>
+        </a>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card p-8">
+
+        <!-- Header -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-gray-900" data-i18n="login.welcome">Bienvenue</h1>
+          <p class="text-gray-500 text-sm mt-1" data-i18n="login.desc">Connectez-vous à votre compte pour continuer</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+
+          <!-- Username -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="login-username" data-i18n="login.username.label">
+              Nom d'utilisateur
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </span>
+              <input
+                id="login-username"
+                type="text"
+                class="input-field"
+                placeholder="nom_utilisateur"
+                data-i18n-placeholder="login.username.placeholder"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <p id="username-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="login.username.error">Veuillez entrer votre nom d'utilisateur.</p>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-5">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-sm font-medium text-gray-700" for="login-password" data-i18n="login.password.label">
+                Mot de passe
+              </label>
+              <a href="#" class="text-xs text-blue-600 hover:text-blue-700 font-medium" onclick="showForgotPassword(event)" data-i18n="login.forgot">
+                Mot de passe oublié ?
+              </a>
+            </div>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </span>
+              <input
+                id="login-password"
+                type="password"
+                class="input-field"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="input-toggle" onclick="togglePassword('login-password', this)" aria-label="Afficher le mot de passe">
+                <svg id="eye-show-login" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eye-hide-login" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
+            </div>
+            <p id="password-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="login.password.error">Mot de passe invalide.</p>
+          </div>
+
+          <!-- Remember me -->
+          <div class="flex items-center gap-2 mb-5">
+            <input id="remember-me" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600">
+            <label for="remember-me" class="text-sm text-gray-600 cursor-pointer select-none" data-i18n="login.remember">Se souvenir de moi</label>
+          </div>
+
+          <!-- Error Banner -->
+          <div id="login-error-banner" class="hidden mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="login-error-text" data-i18n="login.error">Identifiants incorrects. Veuillez réessayer.</span>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="login-btn" class="btn-primary w-full flex items-center justify-center gap-2">
+            <span id="login-btn-text" data-i18n="login.btn">Se connecter</span>
+            <svg id="login-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="auth-divider my-5" data-i18n="login.divider">ou continuer avec</div>
+
+        <!-- Social Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+          <button class="social-btn" onclick="handleSocialLogin('google')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button class="social-btn" onclick="handleSocialLogin('github')">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+
+        <!-- Sign up link -->
+        <p class="text-center text-sm text-gray-500 mt-6">
+          <span data-i18n="login.noAccount">Pas encore de compte ?</span>
+          <a href="signup.html" class="text-blue-600 hover:text-blue-700 font-semibold" data-i18n="login.createAccount">Créer un compte</a>
+        </p>
+
+      </div>
+
+      <!-- Language switcher -->
+      <div class="flex justify-center mt-5">
+        <select class="lang-select" style="max-width:200px;" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+
+      <!-- Footer note -->
+      <p class="text-center text-xs text-gray-400 mt-4">
+        <span data-i18n="login.terms">En vous connectant, vous acceptez nos</span>
+        <a href="#" class="text-blue-500 hover:underline" data-i18n="login.termsLink">Conditions d'utilisation</a> <span data-i18n="login.and">et notre</span>
+        <a href="#" class="text-blue-500 hover:underline" data-i18n="login.privacyLink">Politique de confidentialité</a>.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgot-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeForgotModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm" style="animation: modal-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;">
+      <button onclick="closeForgotModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-gray-900 mb-1" data-i18n="forgot.title">Réinitialiser le mot de passe</h3>
+      <p class="text-sm text-gray-500 mb-4" data-i18n="forgot.desc">Entrez votre e-mail et nous vous enverrons un lien de réinitialisation.</p>
+      <input type="email" id="forgot-email" class="input-field mb-4" placeholder="vous@exemple.com" data-i18n-placeholder="forgot.email.placeholder"/>
+      <button class="btn-primary w-full" onclick="handleForgotPassword()" data-i18n="forgot.btn">Envoyer le lien</button>
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      let valid = true;
+
+      document.getElementById('username-error').classList.add('hidden');
+      document.getElementById('password-error').classList.add('hidden');
+      document.getElementById('login-error-banner').classList.add('hidden');
+
+      if (!username) {
+        document.getElementById('username-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!password || password.length < 6) {
+        document.getElementById('password-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!valid) return;
+
+      const btn = document.getElementById('login-btn');
+      const btnText = document.getElementById('login-btn-text');
+      const spinner = document.getElementById('login-spinner');
+      btn.disabled = true;
+      btnText.textContent = t('login.loading');
+      spinner.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/users/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const token = data.token || data.access || data.key;
+          if (token) Auth.setAuthToken(token);
+          if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
+          localStorage.setItem('authUser', JSON.stringify({ username }));
+          window.location.replace('dashboard.html');
+        } else {
+          const msg = data.non_field_errors?.[0] || data.detail || t('login.error');
+          document.getElementById('login-error-banner').classList.remove('hidden');
+          document.getElementById('login-error-text').textContent = msg;
+        }
+      } catch (err) {
+        document.getElementById('login-error-banner').classList.remove('hidden');
+        document.getElementById('login-error-text').textContent = t('login.error');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = t('login.btn');
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      const showIcon = btn.querySelector('[id^="eye-show"]');
+      const hideIcon = btn.querySelector('[id^="eye-hide"]');
+      showIcon.classList.toggle('hidden', isPassword);
+      hideIcon.classList.toggle('hidden', !isPassword);
+    }
+
+    function handleSocialLogin(provider) {
+      // TODO: Replace with actual OAuth flow
+      alert(`Connexion via ${provider} — à connecter à l'API.`);
+    }
+
+    function showForgotPassword(e) {
+      e.preventDefault();
+      document.getElementById('forgot-modal').classList.remove('hidden');
+    }
+
+    function closeForgotModal() {
+      document.getElementById('forgot-modal').classList.add('hidden');
+    }
+
+    function handleForgotPassword() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) return;
+      // TODO: Replace with actual API call
+      alert(`Lien envoyé à ${email} — à connecter à l'API.`);
+      closeForgotModal();
+    }
+  </script>
+</body>
+</html>

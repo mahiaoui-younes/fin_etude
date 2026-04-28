@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-04-24T22:26:49.359Z",
+  "summary": {
+    "passed": 554,
+    "failed": 0,
+    "total": 554,
+    "durationMs": 800
+  },
+  "suites": [
+    {
+      "label": "Core Utilities & Codon Table",
+      "file": "test-utils.js",
+      "passed": 106,
+      "failed": 0,
+      "total": 106,
+      "durationMs": 67,
+      "status": "pass"
+    },
+    {
+      "label": "DNA/Protein Engine (Scientific)",
+      "file": "test-dna-engine.js",
+      "passed": 168,
+      "failed": 0,
+      "total": 168,
+      "durationMs": 104,
+      "status": "pass"
+    },
+    {
+      "label": "Server Security & Proxy Validation",
+      "file": "test-server-security.js",
+      "passed": 95,
+      "failed": 0,
+      "total": 95,
+      "durationMs": 135,
+      "status": "pass"
+    },
+    {
+      "label": "Bioinformatics Scientific Validation",
+      "file": "test-bioinformatics.js",
+      "passed": 85,
+      "failed": 0,
+      "total": 85,
+      "durationMs": 71,
+      "status": "pass"
+    },
+    {
+      "label": "Performance & Scalability",
+      "file": "test-performance.js",
+      "passed": 32,
+      "failed": 0,
+      "total": 32,
+      "durationMs": 293,
+      "status": "pass"
+    },
+    {
+      "label": "Security: Auth Token & Path Validation",
+      "file": "test-security-auth.js",
+      "passed": 41,
+      "failed": 0,
+      "total": 41,
+      "durationMs": 64,
+      "status": "pass"
+    },
+    {
+      "label": "Bioinformatics Fix Verification (Phase 2)",
+      "file": "test-bio-fixes.js",
+      "passed": 27,
+      "failed": 0,
+      "total": 27,
+      "durationMs": 66,
+      "status": "pass"
+    }
+  ]
+}

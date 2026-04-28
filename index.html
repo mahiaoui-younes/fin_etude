@@ -1,0 +1,607 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — Analyse Structurale</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans" style="position:relative;">
+
+  <!-- ══════════ SCROLL PROGRESS ══════════ -->
+  <div id="scroll-progress-bar"></div>
+
+  <!-- ══════════ FLOATING NAV ══════════ -->
+  <nav id="float-nav" class="float-nav">
+    <div class="float-nav-inner">
+      <a href="index.html" class="nav-logo group">
+        <span class="nav-logo-icon group-hover:scale-110 transition-transform inline-block">🧬</span>
+        <span class="nav-logo-text gradient-text">EpitopX AI</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="index.html" class="nav-link nav-link-active">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Accueil
+        </a>
+        <a href="dashboard.html" class="nav-link">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          Dashboard
+        </a>
+        <a href="viewer.html" class="nav-link">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          Viewer 3D
+        </a>
+        <a href="compare.html" class="nav-link">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Comparer
+        </a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2" id="nav-auth-wrap">
+        <a href="login.html" class="btn-secondary" style="padding:0.45rem 1rem;font-size:0.8rem;">Connexion</a>
+        <a href="signup.html" class="btn-primary" style="padding:0.45rem 1rem;font-size:0.8rem;">S'inscrire</a>
+      </div>
+
+      <button class="nav-mobile-btn" onclick="toggleMobileMenu()" id="mobile-menu-btn" aria-label="Menu">
+        <svg id="nav-hamburger" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg id="nav-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══════════ MOBILE MENU OVERLAY ══════════ -->
+  <div id="mobile-menu" class="home-overlay">
+    <div class="home-overlay-panel">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <span class="gradient-text font-bold text-lg">🧬 EpitopX AI</span>
+        <button onclick="toggleMobileMenu()" class="btn-icon w-8 h-8">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-2">
+        <a href="index.html" class="mobile-nav-link mobile-nav-active">
+          <span class="mobile-nav-icon bg-blue-50 text-blue-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          </span>
+          <div><p class="font-semibold text-sm text-gray-900">Accueil</p><p class="text-xs text-gray-400">Page principale</p></div>
+        </a>
+        <a href="dashboard.html" class="mobile-nav-link">
+          <span class="mobile-nav-icon bg-teal-50 text-teal-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          </span>
+          <div><p class="font-semibold text-sm text-gray-900">Dashboard</p><p class="text-xs text-gray-400">Galerie de protéines</p></div>
+        </a>
+        <a href="viewer.html" class="mobile-nav-link">
+          <span class="mobile-nav-icon bg-violet-50 text-violet-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          </span>
+          <div><p class="font-semibold text-sm text-gray-900">Viewer 3D</p><p class="text-xs text-gray-400">Visualisation structurale</p></div>
+        </a>
+        <a href="compare.html" class="mobile-nav-link">
+          <span class="mobile-nav-icon bg-rose-50 text-rose-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </span>
+          <div><p class="font-semibold text-sm text-gray-900">Comparaison</p><p class="text-xs text-gray-400">Alignement et RMSD</p></div>
+        </a>
+      </div>
+      <!-- Auth buttons -->
+      <div id="mobile-auth-wrap" class="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+        <a href="login.html" class="flex-1 text-center btn-secondary" style="padding:0.5rem 0;font-size:0.875rem;">Connexion</a>
+        <a href="signup.html" class="flex-1 text-center btn-primary" style="padding:0.5rem 0;font-size:0.875rem;">S'inscrire</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside id="sidebar" class="app-sidebar">
+    <!-- Top: brand + collapse toggle -->
+    <div class="sb-top">
+      <a href="index.html" class="sb-brand">
+        <div class="sb-brand-orb">🧬</div>
+        <div class="sb-brand-text-wrap">
+          <span class="sb-brand-name">EpitopX <span>AI</span></span>
+          <span class="sb-brand-sub" data-i18n="brand.sub">Bioinformatique locale</span>
+        </div>
+      </a>
+      <button class="sb-pin-btn" onclick="toggleSidebar()" id="sb-pin-btn" data-i18n-title="nav.collapse" title="Réduire">
+        <svg id="sb-collapse-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <svg id="sb-expand-icon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sb-nav">
+      <span class="sb-group-label" data-i18n="nav.label">Navigation</span>
+
+      <a href="index.html" class="sb-item" data-tooltip="Accueil" data-i18n-title="nav.home">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </div>
+        <span class="sb-item-label" data-i18n="nav.home">Accueil</span>
+      </a>
+
+      <a href="dashboard.html" class="sb-item" data-tooltip="Dashboard" data-i18n-title="nav.dashboard">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        </div>
+        <span class="sb-item-label" data-i18n="nav.dashboard">Dashboard</span>
+        <span class="sb-item-badge">6</span>
+      </a>
+      <a href="my-proteins.html" class="sb-item" title="Mes Protéines">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+        <span class="sb-item-label">Mes Protéines</span>
+      </a>
+
+      <a href="viewer.html" class="sb-item" data-tooltip="Viewer 3D" data-i18n-title="nav.viewer3d">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+        </div>
+        <span class="sb-item-label" data-i18n="nav.viewer3d">Viewer 3D</span>
+      </a>
+
+      <a href="compare.html" class="sb-item" data-tooltip="Comparer" data-i18n-title="nav.compare">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <span class="sb-item-label" data-i18n="nav.compare">Comparer</span>
+      </a>
+      <a href="epitope-search.html" class="sb-item" data-i18n-title="nav.epitopeSearch">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.epitopeSearch">Rech. Épitopes</span>
+      </a>
+      <a href="protein-search.html" class="sb-item" data-i18n-title="nav.uniprotSearch">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.uniprotSearch">Rech. UniProt</span>
+      </a>
+      <a href="ncbi-search.html" class="sb-item" title="Rech. NCBI">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg></div>
+        <span class="sb-item-label">Rech. NCBI</span>
+      </a>
+      <a href="dna-alignment.html" class="sb-item" title="Alignement ADN">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></div>
+        <span class="sb-item-label">Alignement ADN</span>
+      </a>
+      <a href="msa-analysis.html" class="sb-item" title="Analyse MSA">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label">Analyse MSA</span>
+      </a>
+      <a href="settings.html" class="sb-item" title="Paramètres">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-item-label">Paramètres</span>
+      </a>
+
+    </nav>
+
+    <!-- Bottom status -->
+    <div class="sb-bottom">
+      <div class="sb-status">
+        <span class="sb-status-dot"></span>
+        <span class="sb-item-label" style="color:#64748b;font-size:0.8125rem;" data-i18n="nav.serverActive">Serveur actif</span>
+      </div>
+      <span style="font-size:0.625rem;color:#94a3b8;" data-i18n="nav.localMode">v1.0 · Mode local</span>
+      <div class="lang-switcher">
+        <select class="lang-select" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+
+  <!-- Sidebar open button (mobile FAB) -->
+  <button class="sidebar-open-btn" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- ══════════ PAGE MAIN WRAPPER ══════════ -->
+  <div id="page-main" class="page-main">
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero-section">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+
+    <!-- Decorative DNA helix (right side) -->
+    <div class="hero-dna-wrap" aria-hidden="true">
+      <svg viewBox="0 0 120 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dna-g1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#0d9488" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="dna-g2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0d9488" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.2"/>
+          </linearGradient>
+        </defs>
+        <path d="M30,0 C70,48 70,96 30,144 C-10,192 -10,240 30,288 C70,336 70,384 30,432" stroke="url(#dna-g1)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M90,0 C50,48 50,96 90,144 C130,192 130,240 90,288 C50,336 50,384 90,432" stroke="url(#dna-g2)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <line x1="31" y1="33"  x2="89" y2="33"  stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="22" y1="72"  x2="98" y2="72"  stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="31" y1="111" x2="89" y2="111" stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="22" y1="150" x2="98" y2="150" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="31" y1="189" x2="89" y2="189" stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="22" y1="228" x2="98" y2="228" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="31" y1="267" x2="89" y2="267" stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <line x1="22" y1="306" x2="98" y2="306" stroke="#0d9488" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="3,2"/>
+        <circle cx="31" cy="33"  r="4" fill="#3b82f6" fill-opacity="0.55"/>
+        <circle cx="89" cy="33"  r="4" fill="#0d9488" fill-opacity="0.55"/>
+        <circle cx="22" cy="72"  r="3" fill="#0d9488" fill-opacity="0.45"/>
+        <circle cx="98" cy="72"  r="3" fill="#3b82f6" fill-opacity="0.45"/>
+        <circle cx="31" cy="111" r="4" fill="#3b82f6" fill-opacity="0.55"/>
+        <circle cx="89" cy="111" r="4" fill="#0d9488" fill-opacity="0.55"/>
+        <circle cx="22" cy="150" r="3" fill="#0d9488" fill-opacity="0.45"/>
+        <circle cx="98" cy="150" r="3" fill="#3b82f6" fill-opacity="0.45"/>
+        <circle cx="31" cy="189" r="4" fill="#3b82f6" fill-opacity="0.55"/>
+        <circle cx="89" cy="189" r="4" fill="#0d9488" fill-opacity="0.55"/>
+        <circle cx="22" cy="228" r="3" fill="#0d9488" fill-opacity="0.45"/>
+        <circle cx="98" cy="228" r="3" fill="#3b82f6" fill-opacity="0.45"/>
+        <circle cx="31" cy="267" r="4" fill="#3b82f6" fill-opacity="0.55"/>
+        <circle cx="89" cy="267" r="4" fill="#0d9488" fill-opacity="0.55"/>
+      </svg>
+    </div>
+
+    <div class="hero-content max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="hero-badge animate-fade-in">
+        <span class="hero-badge-dot"></span>
+        <span data-i18n="hero.badge">Plateforme d'analyse structurale — Theileria</span>
+      </div>
+
+      <h1 class="hero-title animate-fade-in" style="animation-delay:0.1s">
+        <span data-i18n="hero.title.pre">Analysez vos </span><span class="gradient-text" data-i18n="hero.title.grad">protéines</span><br class="hidden sm:block">
+        <span data-i18n="hero.title.post"> en temps réel</span>
+      </h1>
+
+      <p class="hero-desc animate-fade-in" style="animation-delay:0.2s" data-i18n="hero.desc">
+        Convertissez des séquences ADN en protéines, explorez leurs structures 3D
+        et comparez-les — le tout directement dans votre navigateur.
+      </p>
+
+      <div class="hero-ctas animate-fade-in" style="animation-delay:0.3s">
+        <a href="#convert-section" class="btn-primary hero-btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span data-i18n="hero.cta.start">Commencer l'analyse</span>
+        </a>
+        <a href="dashboard.html" class="btn-secondary hero-btn-secondary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span data-i18n="hero.cta.gallery">Explorer la galerie</span>
+        </a>
+        <a href="viewer.html" class="hero-btn-ghost flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          <span data-i18n="hero.cta.viewer">Viewer 3D</span>
+        </a>
+      </div>
+
+      <!-- Stats pill -->
+      <div class="hero-stats animate-fade-in" style="animation-delay:0.45s">
+        <div class="hero-stat">
+          <span class="hero-stat-value text-blue-600" id="stat-proteins">6</span>
+          <span class="hero-stat-label" data-i18n="stat.proteins">Protéines</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-value text-teal-600">3</span>
+          <span class="hero-stat-label" data-i18n="stat.species">Espèces</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-value text-rose-500">3D</span>
+          <span class="hero-stat-label" data-i18n="stat.visualization">Visualisation</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-value text-emerald-600">100%</span>
+          <span class="hero-stat-label" data-i18n="stat.local">Local</span>
+        </div>
+      </div>
+
+      <div class="flex justify-center mt-4 animate-fade-in" style="animation-delay:0.6s">
+        <svg class="w-5 h-5 animate-bounce text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ CONVERSION SECTION ══════════ -->
+  <section id="convert-section" class="home-section">
+    <div class="home-section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow" data-i18n="section.convert.eyebrow">Outil principal</span>
+      <h2 class="section-title" data-i18n="section.convert.title">Conversion ADN → Protéine</h2>
+      <p class="section-desc" data-i18n="section.convert.desc">Entrez votre séquence ADN ou importez un fichier FASTA pour la traduire en séquence protéique.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8">
+      <!-- Left: Input -->
+      <div class="glass-card p-6 sm:p-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-md shadow-blue-200/60 flex-shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-gray-900" data-i18n="convert.input.title">Séquence ADN / FASTA</h3>
+              <p class="text-xs text-gray-400 mt-0.5" data-i18n="convert.input.subtitle">Collez ou importez votre séquence</p>
+            </div>
+          </div>
+        <!-- Tabs -->
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg mb-5">
+          <button class="tab-btn active flex-1" onclick="switchTab('text')" id="tab-text" data-i18n="convert.tab.text">Texte</button>
+          <button class="tab-btn flex-1" onclick="switchTab('file')" id="tab-file" data-i18n="convert.tab.file">Fichier</button>
+        </div>
+
+        <!-- Text input tab -->
+        <div id="panel-text">
+          <textarea id="dna-input" class="input-field mb-3" rows="6"
+            data-i18n-placeholder="convert.placeholder"
+            placeholder="Collez votre séquence ADN ici...&#10;Ex: ATGGTTCTGTCTCCTGCTGAT...&#10;&#10;Ou au format FASTA :&#10;>gene_001&#10;ATGGTTCTGTCTCCTGCTGAT..."></textarea>
+          <div class="flex items-center justify-between text-xs text-gray-400 mb-5">
+            <span id="char-count">0 nucléotides</span>
+            <button class="text-blue-600 hover:text-blue-700 transition-colors" onclick="loadExampleDNA()" data-i18n="convert.loadExample">
+              Charger un exemple
+            </button>
+          </div>
+        </div>
+
+        <!-- File input tab -->
+        <div id="panel-file" class="hidden">
+          <div class="dropzone mb-5" id="dropzone"
+               onclick="document.getElementById('file-input').click()"
+               ondragover="event.preventDefault(); this.classList.add('dragover')"
+               ondragleave="this.classList.remove('dragover')"
+               ondrop="handleFileDrop(event)">
+            <svg class="w-10 h-10 mx-auto mb-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <p class="text-sm text-gray-500"><span data-i18n="convert.dropzone.main">Glissez un fichier .fasta ou .txt ici</span></p>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="convert.dropzone.sub">ou cliquez pour parcourir</p>
+          </div>
+          <input type="file" id="file-input" accept=".fasta,.fa,.txt,.fna" class="hidden" onchange="handleFileSelect(event)">
+          <div id="file-info" class="hidden text-sm text-emerald-600 mb-4 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span id="file-name"></span>
+          </div>
+        </div>
+
+        <!-- Error display -->
+        <div id="error-box" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <div>
+              <p class="text-red-600 font-medium text-sm mb-1" data-i18n="convert.error.title">Erreur de validation</p>
+              <ul id="error-list" class="text-red-500 text-xs space-y-1"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap gap-3">
+          <button class="btn-primary flex items-center gap-2 flex-1 justify-center" onclick="convertDNA()" id="btn-convert">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span data-i18n="convert.btn">Convertir en protéine</span>
+          </button>
+          <button class="btn-secondary flex items-center gap-2" onclick="clearInput()" title="Effacer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Results -->
+      <div class="glass-card p-6 sm:p-8" id="result-panel">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-200/60 flex-shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-gray-900" data-i18n="convert.result.title">Résultat</h3>
+              <p class="text-xs text-gray-400 mt-0.5" data-i18n="convert.result.subtitle">Séquence traduite et analyse</p>
+            </div>
+          </div>
+        <!-- Empty state -->
+        <div id="result-empty" class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 animate-float">
+            <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          </div>
+          <p class="text-gray-400 text-sm" data-i18n="convert.result.empty">Entrez une séquence ADN et cliquez sur "Convertir en protéine"</p>
+        </div>
+
+        <!-- Result content -->
+        <div id="result-content" class="hidden space-y-4">
+
+          <!-- FASTA header -->
+          <p id="result-header" class="hidden font-mono text-xs text-blue-600 truncate"></p>
+
+          <!-- Result tabs -->
+          <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            <button id="rtab-seq"         class="tab-btn active flex-1 text-xs" onclick="switchResultTab('seq')" data-i18n="result.tab.seq">Sequence</button>
+            <button id="rtab-analysis"    class="tab-btn flex-1 text-xs"        onclick="switchResultTab('analysis')" data-i18n="result.tab.analysis">Analysis</button>
+            <button id="rtab-composition" class="tab-btn flex-1 text-xs"        onclick="switchResultTab('composition')" data-i18n="result.tab.composition">Composition</button>
+            <button id="rtab-frames"      class="tab-btn flex-1 text-xs"        onclick="switchResultTab('frames')" data-i18n="result.tab.frames">ORF Frames</button>
+          </div>
+
+          <!-- Panel: Sequence -->
+          <div id="rpanel-seq" class="space-y-3">
+            <div>
+              <label class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-2 block" data-i18n="convert.result.protein.label">
+                Protein Sequence (one-letter code)
+              </label>
+              <div class="sequence-display relative leading-7" id="protein-sequence" style="font-size:0.82rem;letter-spacing:0.03em;word-break:break-all;"></div>
+              <!-- Legend -->
+              <div class="flex flex-wrap gap-3 mt-2 text-[10px]">
+                <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded aa-nonpolar-dot"></span> <span data-i18n="aa.nonpolar">Nonpolar</span></span>
+                <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded aa-polar-dot"></span> <span data-i18n="aa.polar">Polar</span></span>
+                <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded aa-positive-dot"></span> <span data-i18n="aa.positive">Positive</span></span>
+                <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded aa-negative-dot"></span> <span data-i18n="aa.negative">Negative</span></span>
+              </div>
+            </div>
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-[10px] text-gray-400 leading-relaxed flex-1" id="protein-length"></p>
+              <div class="flex gap-2 shrink-0">
+                <button class="text-xs text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1" onclick="copyProtein()" title="Copy sequence">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span data-i18n="convert.copy">Copy</span>
+                </button>
+                <button class="text-xs text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1" onclick="copyFASTA()" title="Copy as FASTA">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span data-i18n="convert.fasta">FASTA</span>
+                </button>
+              </div>
+            </div>
+            <textarea id="protein-fasta-txt" class="hidden" readonly></textarea>
+          </div>
+
+          <!-- Panel: Analysis (filled by JS) -->
+          <div id="rpanel-analysis" class="hidden"></div>
+
+          <!-- Panel: Composition (filled by JS) -->
+          <div id="rpanel-composition" class="hidden"></div>
+
+          <!-- Panel: ORF Frames (filled by JS) -->
+          <div id="rpanel-frames" class="hidden"></div>
+
+          <!-- DB check — always visible -->
+          <div class="border-t border-gray-100 pt-4">
+            <button class="btn-primary w-full flex items-center justify-center gap-2 text-sm" onclick="checkInDatabase()" id="btn-check-db">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <span data-i18n="convert.btn.checkDb">Vérifier dans la base de données</span>
+            </button>
+            <div id="db-result" class="mt-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ══════════ FEATURES ══════════ -->
+  <section id="features" class="features-section">
+    <div class="home-section-inner">
+      <div class="section-header">
+        <span class="section-eyebrow" data-i18n="features.eyebrow">Capacités</span>
+        <h2 class="section-title" data-i18n="features.title">Fonctionnalités clés</h2>
+        <p class="section-desc" data-i18n="features.desc">Tout ce dont vous avez besoin pour l'analyse structurale de protéines</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.dna.title">Traduction ADN</h3>
+          <p class="feature-desc" data-i18n="feat.dna.desc">Convertissez des séquences ADN / FASTA en protéines avec validation automatique en temps réel.</p>
+          <a href="#convert-section" class="feature-link" data-i18n="feat.dna.link">Essayer →</a>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#2dd4bf,#0d9488);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.3d.title">Visualisation 3D</h3>
+          <p class="feature-desc" data-i18n="feat.3d.desc">Explorez les structures protéiques en 3D avec rotation, zoom et sélection interactive des résidus.</p>
+          <a href="viewer.html" class="feature-link" data-i18n="feat.3d.link">Ouvrir →</a>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#fb7185,#e11d48);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.compare.title">Comparaison</h3>
+          <p class="feature-desc" data-i18n="feat.compare.desc">Comparez plusieurs protéines côte à côte, calculez le RMSD et le pourcentage de similarité.</p>
+          <a href="compare.html" class="feature-link" data-i18n="feat.compare.link">Comparer →</a>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#34d399,#059669);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7zm0 5h16"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.gallery.title">Galerie interactive</h3>
+          <p class="feature-desc" data-i18n="feat.gallery.desc">Parcourez la base de données avec filtres avancés, recherche et cards animées.</p>
+          <a href="dashboard.html" class="feature-link" data-i18n="feat.gallery.link">Parcourir →</a>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#fbbf24,#d97706);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.pdb.title">Import PDB / CIF</h3>
+          <p class="feature-desc" data-i18n="feat.pdb.desc">Importez vos propres fichiers PDB ou mmCIF pour une visualisation instantanée dans le viewer.</p>
+          <a href="viewer.html" class="feature-link" data-i18n="feat.pdb.link">Importer →</a>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon" style="background:linear-gradient(135deg,#60a5fa,#2563eb);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          </div>
+          <h3 class="feature-title" data-i18n="feat.api.title">API Ready</h3>
+          <p class="feature-desc" data-i18n="feat.api.desc">Architecture modulaire avec hooks prêts pour intégrer vos APIs backend et bases de données externes.</p>
+          <span class="feature-link" style="color:#94a3b8;cursor:default;" data-i18n="feat.api.link">Intégré</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="site-footer">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="footer-grid">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">🧬</span>
+            <span class="font-bold text-lg" style="background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">EpitopX AI</span>
+            <span class="tag tag-violet text-[10px]">v1.0</span>
+          </div>
+          <p class="text-sm text-gray-400 leading-relaxed max-w-xs" data-i18n="footer.platform">
+            Plateforme d'analyse structurale de protéines de Theileria — entièrement locale, sans cloud.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-heading" data-i18n="footer.nav">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav.home">Accueil</a></li>
+            <li><a href="dashboard.html" data-i18n="nav.dashboard">Dashboard</a></li>
+            <li><a href="viewer.html" data-i18n="nav.viewer3d">Viewer 3D</a></li>
+            <li><a href="compare.html" data-i18n="nav.compare">Comparaison</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading" data-i18n="footer.features">Fonctionnalités</h4>
+          <ul class="footer-links">
+            <li><a href="#convert-section" data-i18n="footer.feat.dna">Traduction ADN</a></li>
+            <li><a href="viewer.html" data-i18n="footer.feat.3d">Structure 3D</a></li>
+            <li><a href="viewer.html" data-i18n="footer.feat.epitopes">Prédiction épitopes</a></li>
+            <li><a href="compare.html" data-i18n="footer.feat.rmsd">Alignement RMSD</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="text-xs text-gray-500" data-i18n="footer.copyright">© 2026 EpitopX AI — Mode local</p>
+        <p class="text-xs text-gray-600" data-i18n="footer.powered">Powered by 3Dmol.js · Tailwind CSS · Inter</p>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /page-main -->
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/dataset.js"></script>
+  <script src="js/dna.js"></script>
+  <script src="js/pdb-generator.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/bg-particles.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

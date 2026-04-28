@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — AI Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    /* Chat fills available page-main height */
+    .chat-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 2rem);
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 0;
+      box-sizing: border-box;
+    }
+
+    /* Message bubbles */
+    .msg-bubble {
+      max-width: 78%;
+      padding: 0.75rem 1rem;
+      border-radius: 1.25rem;
+      line-height: 1.6;
+      font-size: 0.9375rem;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .msg-user .msg-bubble {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      border-bottom-right-radius: 0.35rem;
+    }
+    .msg-agent .msg-bubble {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      color: #1e293b;
+      border-bottom-left-radius: 0.35rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.6rem;
+      animation: msg-in 0.22s ease both;
+    }
+    .msg-user { justify-content: flex-end; }
+    .msg-agent { justify-content: flex-start; }
+
+    @keyframes msg-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Avatar */
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .avatar-agent { background: linear-gradient(135deg, #0d9488, #3b82f6); color: #fff; }
+    .avatar-user  { background: linear-gradient(135deg, #6366f1, #3b82f6); color: #fff; }
+
+    /* Typing indicator */
+    .typing-dots span {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #94a3b8;
+      animation: dot-bounce 1.3s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-6px); }
+    }
+
+    #prompt-input { resize: none; max-height: 160px; overflow-y: auto; }
+
+    #chat-messages::-webkit-scrollbar { width: 5px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius: 3px; }
+
+    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .stream-cursor::after {
+      content: '▋';
+      animation: blink 0.65s step-end infinite;
+      color: #3b82f6;
+      font-size: 0.85em;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+  </style>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside id="sidebar" class="app-sidebar">
+    <div class="sb-top">
+      <a href="index.html" class="sb-brand">
+        <div class="sb-brand-orb">🧬</div>
+        <div class="sb-brand-text-wrap">
+          <span class="sb-brand-name">EpitopX <span>AI</span></span>
+          <span class="sb-brand-sub" data-i18n="brand.sub">Bioinformatique locale</span>
+        </div>
+      </a>
+      <button class="sb-pin-btn" onclick="toggleSidebar()" id="sb-pin-btn" title="Réduire" data-i18n-title="nav.collapse">
+        <svg id="sb-collapse-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <svg id="sb-expand-icon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <nav class="sb-nav">
+      <span class="sb-group-label" data-i18n="nav.label">Navigation</span>
+      <a href="index.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.home">Accueil</span>
+      </a>
+      <a href="dashboard.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+      <a href="my-proteins.html" class="sb-item" title="Mes Protéines">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.myProteins">Mes Protéines</span>
+      </a>
+      <a href="viewer.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.viewer3d">Viewer 3D</span>
+      </a>
+      <a href="compare.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.compare">Comparer</span>
+      </a>
+      <a href="epitope-search.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.epitopeSearch">Rech. Épitopes</span>
+      </a>
+      <a href="protein-search.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.uniprotSearch">Rech. UniProt</span>
+      </a>
+      <a href="ncbi-search.html" class="sb-item" title="Rech. NCBI">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.ncbi">Rech. NCBI</span>
+      </a>
+      <a href="dna-alignment.html" class="sb-item" title="Alignement ADN">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></div>
+        <span class="sb-item-label">Alignement ADN</span>
+      </a>
+      <a href="msa-analysis.html" class="sb-item" title="Analyse MSA">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label">Analyse MSA</span>
+      </a>
+      <a href="settings.html" class="sb-item" title="Paramètres">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.settings">Paramètres</span>
+      </a>
+
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-status">
+        <span class="sb-status-dot"></span>
+        <span class="sb-item-label" style="color:#64748b;font-size:0.8125rem;" data-i18n="nav.serverActive">Serveur actif</span>
+      </div>
+      <span style="font-size:0.625rem;color:#94a3b8;" data-i18n="nav.localMode">v1.0 · Mode local</span>
+      <div class="lang-switcher">
+        <select class="lang-select" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+  <button class="sidebar-open-btn" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- ══════════ PAGE MAIN ══════════ -->
+  <div id="page-main" class="page-main">
+    <div class="chat-wrapper">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:linear-gradient(135deg,#0d9488,#3b82f6);">🤖</div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight" style="background:linear-gradient(135deg,#3b82f6,#6366f1,#0d9488);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" data-i18n="agent.title">AI Agent</h1>
+          <p class="text-xs text-gray-400">Powered by <span class="font-mono">/api/analyze-protein/</span></p>
+        </div>
+        <div class="ml-auto">
+          <button onclick="clearChat()" title="Clear conversation"
+            class="text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span data-i18n="agent.clear">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages area -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto flex flex-col gap-3 pb-4" style="scroll-behavior:smooth;">
+        <div class="msg-row msg-agent">
+          <div class="avatar avatar-agent">🤖</div>
+          <div class="msg-bubble" data-i18n="agent.welcome">Hello! I'm the EpitopX AI AI Agent. Enter a protein name (e.g. <strong>Spike</strong>, <strong>Hemoglobin</strong>) and I'll analyze it for you.</div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="pb-4 pt-2" style="background:linear-gradient(to top,#f7f8fc 80%,transparent);flex-shrink:0;">
+        <div class="glass-card p-3 flex gap-3 items-end" style="border-radius:1.25rem;">
+          <textarea
+            id="prompt-input"
+            rows="1"
+            placeholder="Enter a protein name to analyze…"
+            data-i18n-placeholder="agent.placeholder"
+            class="flex-1 bg-transparent outline-none resize-none text-sm text-gray-800 placeholder-gray-400 leading-relaxed"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <button id="send-btn" onclick="sendPrompt()"
+            class="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-all duration-200 flex-shrink-0"
+            style="background:linear-gradient(135deg,#3b82f6,#6366f1);" title="Send (Enter)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <p class="text-center text-[11px] text-gray-300 mt-2">
+          <kbd class="px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[10px] border border-gray-200">Enter</kbd> <span data-i18n="agent.toSend">to send</span> &nbsp;·&nbsp;
+          <kbd class="px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[10px] border border-gray-200">Shift+Enter</kbd> <span data-i18n="agent.forNewLine">for new line</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script>
+    const messagesEl = document.getElementById('chat-messages');
+    const inputEl    = document.getElementById('prompt-input');
+    const sendBtn    = document.getElementById('send-btn');
+    let isStreaming  = false;
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPrompt(); }
+    }
+
+    function scrollBottom() {
+      messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+    }
+
+    function appendUser(text) {
+      const row = document.createElement('div');
+      row.className = 'msg-row msg-user';
+      row.innerHTML = `<div class="msg-bubble">${escapeHtml(text)}</div><div class="avatar avatar-user">You</div>`;
+      messagesEl.appendChild(row);
+      scrollBottom();
+    }
+
+    function appendAgent(text = '', streaming = false) {
+      const row = document.createElement('div');
+      row.className = 'msg-row msg-agent';
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble' + (streaming ? ' stream-cursor' : '');
+      bubble.textContent = text;
+      row.innerHTML = `<div class="avatar avatar-agent">🤖</div>`;
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      scrollBottom();
+      return bubble;
+    }
+
+    function showTyping() {
+      const row = document.createElement('div');
+      row.id = 'typing-indicator';
+      row.className = 'msg-row msg-agent';
+      row.innerHTML = `<div class="avatar avatar-agent">🤖</div><div class="msg-bubble py-3"><div class="typing-dots flex gap-1 items-center"><span></span><span></span><span></span></div></div>`;
+      messagesEl.appendChild(row);
+      scrollBottom();
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function clearChat() {
+      messagesEl.innerHTML = `<div class="msg-row msg-agent"><div class="avatar avatar-agent">🤖</div><div class="msg-bubble">Conversation cleared. Enter a protein name to analyze.</div></div>`;
+    }
+
+    function formatAnalysisResult(data) {
+      // Try to build a readable string from whatever the API returns
+      if (typeof data === 'string') return data;
+      const lines = [];
+      for (const [key, value] of Object.entries(data)) {
+        if (value === null || value === undefined || value === '') continue;
+        const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (typeof value === 'object') {
+          lines.push(`${label}:\n${JSON.stringify(value, null, 2)}`);
+        } else {
+          lines.push(`${label}: ${value}`);
+        }
+      }
+      return lines.length ? lines.join('\n\n') : JSON.stringify(data, null, 2);
+    }
+
+    async function sendPrompt() {
+      const prompt = inputEl.value.trim();
+      if (!prompt || isStreaming) return;
+      inputEl.value = '';
+      inputEl.style.height = 'auto';
+      appendUser(prompt);
+      showTyping();
+      isStreaming = true;
+      sendBtn.disabled = true;
+      try {
+        const res = await fetch('/api/analyze-protein/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: prompt }),
+        });
+        removeTyping();
+        if (!res.ok) {
+          const errText = await res.text().catch(() => res.statusText);
+          appendAgent(`⚠️ Error ${res.status}: ${errText}`);
+          return;
+        }
+        const data = await res.json();
+        const reply = formatAnalysisResult(data);
+        appendAgent(String(reply));
+      } catch (err) {
+        removeTyping();
+        appendAgent(`⚠️ Request failed: ${err.message}`);
+      } finally {
+        isStreaming = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+        scrollBottom();
+      }
+    }
+
+    inputEl.focus();
+  </script>
+</body>
+</html>

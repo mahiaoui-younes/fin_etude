@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — Analyse MSA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    /* ── Nucleotide colours ──────────────────────────────────────── */
+    .nt-A { background:#bbf7d0; color:#14532d; }
+    .nt-T { background:#fecaca; color:#7f1d1d; }
+    .nt-G { background:#bfdbfe; color:#1e3a8a; }
+    .nt-C { background:#fef08a; color:#713f12; }
+    .nt-gap { background:#f1f5f9; color:#94a3b8; }
+
+    /* ── Alignment viewer ─────────────────────────────────────────── */
+    .align-viewer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+    }
+    .align-row { display:flex; align-items:center; margin-bottom:2px; }
+    .align-label {
+      min-width:160px; max-width:160px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:10px; font-weight:600; color:#475569;
+      padding-right:8px; flex-shrink:0;
+    }
+    .align-seq  { display:inline-flex; gap:0; }
+    .nt-cell {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:14px; height:18px; font-size:10px; font-weight:700;
+      border-radius:2px; margin:0 0.5px;
+    }
+
+    /* ── SNP lollipop track ───────────────────────────────────────── */
+    .snp-track {
+      position:relative; height:60px; overflow:hidden;
+      background:#f8fafc; border:1px solid #e2e8f0; border-radius:0.75rem;
+    }
+    .snp-stick {
+      position:absolute; bottom:0; width:2px;
+      background:#ef4444; border-radius:1px 1px 0 0;
+      transform:translateX(-50%); cursor:pointer;
+      transition: opacity .15s;
+    }
+    .snp-stick:hover { opacity:.7; }
+    .snp-dot {
+      position:absolute; top:-5px; left:50%;
+      transform:translateX(-50%);
+      width:10px; height:10px; border-radius:50%;
+      background:#ef4444; border:2px solid #fff;
+    }
+    .snp-high .snp-stick { background:#7c3aed; }
+    .snp-high .snp-dot   { background:#7c3aed; }
+
+    /* ── Distance matrix heat ────────────────────────────────────── */
+    .heatmap-cell {
+      font-size:10px; font-weight:700; text-align:center;
+      padding:4px 2px; border-radius:3px;
+      min-width:50px;
+    }
+
+    /* ── Tree canvas ─────────────────────────────────────────────── */
+    #tree-canvas { cursor:grab; }
+    #tree-canvas:active { cursor:grabbing; }
+
+    /* ── Misc shared ─────────────────────────────────────────────── */
+    .seq-textarea {
+      font-family:'JetBrains Mono', monospace;
+      font-size:11px; resize:vertical; min-height:180px;
+    }
+    .stat-box {
+      background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:0.625rem; padding:0.625rem 0.875rem;
+    }
+    @keyframes shimmer {
+      0%   { background-position:-200% 0; }
+      100% { background-position:200% 0; }
+    }
+    .shimmer {
+      background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+      background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:4px;
+    }
+    .tab-btn {
+      padding:0.35rem 0.85rem; font-size:0.78rem; font-weight:600;
+      border-radius:0.5rem; cursor:pointer; transition:all .15s;
+      color:#64748b; background:transparent;
+    }
+    .tab-btn.active {
+      background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;
+    }
+    .tab-btn:not(.active):hover { background:#f1f5f9; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+  </style>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside id="sidebar" class="app-sidebar">
+    <div class="sb-top">
+      <a href="index.html" class="sb-brand">
+        <div class="sb-brand-orb">🧬</div>
+        <div class="sb-brand-text-wrap">
+          <span class="sb-brand-name">EpitopX <span>AI</span></span>
+          <span class="sb-brand-sub">Bioinformatique locale</span>
+        </div>
+      </a>
+      <button class="sb-pin-btn" onclick="toggleSidebar()" id="sb-pin-btn" title="Réduire">
+        <svg id="sb-collapse-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <svg id="sb-expand-icon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <nav class="sb-nav">
+      <span class="sb-group-label">Navigation</span>
+      <a href="index.html" class="sb-item" title="Accueil">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+        <span class="sb-item-label">Accueil</span>
+      </a>
+      <a href="dashboard.html" class="sb-item" title="Dashboard">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></div>
+        <span class="sb-item-label">Dashboard</span>
+      </a>
+      <a href="viewer.html" class="sb-item" title="Viewer 3D">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg></div>
+        <span class="sb-item-label">Viewer 3D</span>
+      </a>
+      <a href="compare.html" class="sb-item" title="Comparer">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label">Comparer</span>
+      </a>
+      <a href="epitope-search.html" class="sb-item" title="Rech. Épitopes">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg></div>
+        <span class="sb-item-label">Rech. Épitopes</span>
+      </a>
+      <a href="protein-search.html" class="sb-item" title="Rech. UniProt">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+        <span class="sb-item-label">Rech. UniProt</span>
+      </a>
+      <a href="ncbi-search.html" class="sb-item" title="Rech. NCBI">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg></div>
+        <span class="sb-item-label">Rech. NCBI</span>
+      </a>
+      <a href="dna-alignment.html" class="sb-item" title="Alignement ADN">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></div>
+        <span class="sb-item-label">Alignement ADN</span>
+      </a>
+      <!-- MSA Analysis — active -->
+      <a href="msa-analysis.html" class="sb-item active" title="Analyse MSA">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <span class="sb-item-label">Analyse MSA</span>
+      </a>
+      <a href="settings.html" class="sb-item" title="Paramètres">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-item-label">Paramètres</span>
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-status">
+        <span class="sb-status-dot"></span>
+        <span class="sb-item-label" style="color:#64748b;font-size:0.8125rem;">Serveur actif</span>
+      </div>
+      <span style="font-size:0.625rem;color:#94a3b8;">v1.0 · Mode local</span>
+    </div>
+  </aside>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+  <button class="sidebar-open-btn" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- ══════════ PAGE MAIN ══════════ -->
+  <div id="page-main" class="page-main">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+
+    <!-- ── Page header ─────────────────────────────────────────── -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4"
+           style="background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.18);">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Analyse de Séquences MSA
+      </div>
+      <h1 class="text-3xl font-bold mb-3 text-gray-900">
+        Analyse MSA — <span class="gradient-text">SNP · Haplotypes · Phylogénie</span>
+      </h1>
+      <p class="text-gray-400 max-w-2xl mx-auto text-sm">
+        Analysez des séquences déjà alignées : détection de SNPs, regroupement en haplotypes,
+        matrice de distances Hamming et arbre phylogénétique Neighbor-Joining.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+
+      <!-- ════════════════════════════════════
+           LEFT — Input panel
+      ════════════════════════════════════ -->
+      <div class="lg:col-span-1 space-y-5">
+
+        <!-- FASTA input -->
+        <div class="glass-card p-5">
+          <h2 class="text-sm font-semibold mb-4 flex items-center gap-2 text-gray-900">
+            <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Séquences alignées (FASTA)
+            <span id="seq-count-badge"
+              class="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full"
+              style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;display:none;">
+              <span id="seq-count-num">0</span> seq.
+            </span>
+          </h2>
+
+          <label class="text-xs text-gray-400 mb-1 block">
+            Séquences pré-alignées — colonnes homologues, longueurs identiques
+          </label>
+          <textarea id="fasta-input" class="input-field seq-textarea w-full mb-2"
+            placeholder=">Seq1&#10;ATGCGTAAC&#10;>Seq2&#10;ATGCTTAAC&#10;>Seq3&#10;ATGCGTAAG"
+            oninput="onFastaChange(this.value)"></textarea>
+
+          <div class="flex gap-2 mb-3">
+            <button class="btn-secondary flex-1 text-xs py-1.5" onclick="loadExample()">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              Exemple HBB
+            </button>
+            <label class="btn-secondary flex-1 text-xs py-1.5 cursor-pointer text-center">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              Fichier .fa
+              <input type="file" accept=".fa,.fasta,.fna,.txt,.aln" class="hidden" onchange="loadFile(event)">
+            </label>
+            <button class="btn-secondary text-xs py-1.5 px-3" onclick="clearAll()" title="Effacer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Detected seq list -->
+          <div id="seq-preview" style="display:none;">
+            <p class="text-xs text-gray-400 mb-1.5">Séquences détectées</p>
+            <div id="seq-preview-items" class="space-y-1"></div>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="glass-card p-5">
+          <h2 class="text-sm font-semibold mb-4 flex items-center gap-2 text-gray-900">
+            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Options
+          </h2>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Séquence de référence</label>
+              <select id="ref-select" class="input-field text-sm">
+                <option value="0">Première séquence (défaut)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Entropie SNP min. (bits)</label>
+              <input type="number" id="entropy-min" class="input-field text-sm" value="0" min="0" max="2" step="0.1">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Méthode arbre phylogénétique</label>
+              <select id="tree-method" class="input-field text-sm">
+                <option value="nj" selected>Neighbor-Joining (NJ) — Saitou &amp; Nei 1987</option>
+                <option value="me">Minimum Evolution (ME) — Rzhetsky &amp; Nei 1992</option>
+                <option value="ml">Maximum Likelihood (ML) — JC69 / Felsenstein 1981</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="run-btn" class="btn-primary w-full mt-5 flex items-center justify-center gap-2"
+                  onclick="runAnalysis()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Lancer l'analyse
+          </button>
+        </div>
+
+        <!-- Export card (hidden until result) -->
+        <div id="export-card" class="glass-card p-5" style="display:none;">
+          <h2 class="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900">
+            <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Exporter
+          </h2>
+          <div class="flex flex-col gap-2">
+            <button class="btn-secondary text-xs py-1.5 w-full" onclick="exportJSON()">
+              JSON complet (SNP + haplotypes + arbre)
+            </button>
+            <button class="btn-secondary text-xs py-1.5 w-full" onclick="exportSNPCSV()">
+              CSV — tableau SNP
+            </button>
+            <button class="btn-secondary text-xs py-1.5 w-full" onclick="exportNewick()">
+              Newick — arbre phylogénétique
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- ════════════════════════════════════
+           RIGHT — Results
+      ════════════════════════════════════ -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Empty state -->
+        <div id="empty-state" class="glass-card p-14 flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+               style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(37,99,235,.1));">
+            <svg class="w-8 h-8 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <p class="font-semibold text-gray-700 mb-1">Aucune analyse</p>
+          <p class="text-xs text-gray-400 max-w-xs">
+            Collez des séquences FASTA déjà alignées ou utilisez l'<strong>Exemple HBB</strong>,
+            puis cliquez sur <strong>Lancer l'analyse</strong>.
+          </p>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading-state" class="glass-card p-8" style="display:none;">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-5 h-5 rounded-full border-2 border-violet-500 border-t-transparent animate-spin"></div>
+            <span class="text-sm font-medium text-gray-700">Analyse en cours…</span>
+          </div>
+          <div class="space-y-3">
+            <div class="shimmer h-4 w-full"></div>
+            <div class="shimmer h-4 w-5/6"></div>
+            <div class="shimmer h-4 w-4/6"></div>
+            <div class="shimmer h-4 w-full"></div>
+          </div>
+        </div>
+
+        <!-- ── Result panels ────────────────────────────────────── -->
+        <div id="results-wrap" style="display:none;" class="space-y-5">
+
+          <!-- Summary stats -->
+          <div id="summary-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+
+          <!-- Tab navigation -->
+          <div class="glass-card p-5">
+            <div class="flex items-center gap-1 mb-5 flex-wrap">
+              <button class="tab-btn active" onclick="showTab('snp')" id="tab-snp">SNP</button>
+              <button class="tab-btn" onclick="showTab('hap')" id="tab-hap">Haplotypes</button>
+              <button class="tab-btn" onclick="showTab('dist')" id="tab-dist">Distances</button>
+              <button class="tab-btn" onclick="showTab('tree')" id="tab-tree">Arbre Phylo.</button>
+            </div>
+
+            <!-- ── SNP tab ────────────────────────────────────── -->
+            <div id="panel-snp" class="tab-panel active">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-800">Carte des SNPs</h3>
+                <span id="snp-count-label"
+                  class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;"></span>
+              </div>
+              <!-- Lollipop track -->
+              <div id="snp-track-wrap" class="mb-5">
+                <canvas id="snp-canvas" class="w-full" height="70"
+                  style="border:1px solid #e2e8f0;border-radius:0.75rem;cursor:crosshair;"></canvas>
+                <p class="text-xs text-gray-400 mt-1">
+                  Rouge = SNP · Violet = haute entropie (&gt;0.5 bits) · Survol pour détails
+                </p>
+              </div>
+              <!-- SNP table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs" id="snp-table">
+                  <thead>
+                    <tr class="text-left text-gray-400 border-b border-gray-100">
+                      <th class="pb-2 pr-3 font-semibold">Pos</th>
+                      <th class="pb-2 pr-3 font-semibold">Réf</th>
+                      <th class="pb-2 pr-3 font-semibold">Alt(s) · count · fréq.</th>
+                      <th class="pb-2 pr-3 font-semibold">Gaps</th>
+                      <th class="pb-2 font-semibold">Entropie</th>
+                    </tr>
+                  </thead>
+                  <tbody id="snp-tbody" class="divide-y divide-gray-50"></tbody>
+                </table>
+                <p id="snp-empty" class="text-xs text-gray-400 text-center py-6" style="display:none;">
+                  Aucun SNP détecté — séquences totalement conservées.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── Haplotypes tab ─────────────────────────────── -->
+            <div id="panel-hap" class="tab-panel">
+              <h3 class="text-sm font-semibold text-gray-800 mb-3">Groupes haplotypes</h3>
+              <div id="hap-bars" class="space-y-2 mb-5"></div>
+              <div id="hap-table-wrap" class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="text-left text-gray-400 border-b border-gray-100">
+                      <th class="pb-2 pr-3 font-semibold">ID</th>
+                      <th class="pb-2 pr-3 font-semibold">Membres</th>
+                      <th class="pb-2 pr-3 font-semibold">Nb</th>
+                      <th class="pb-2 font-semibold">Fréquence</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hap-tbody" class="divide-y divide-gray-50"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ── Distance matrix tab ───────────────────────── -->
+            <div id="panel-dist" class="tab-panel">
+              <h3 class="text-sm font-semibold text-gray-800 mb-1">Matrice p-distance (Hamming)</h3>
+              <p class="text-xs text-gray-400 mb-4">
+                Proportion de sites différents par paire · Diagonale = 0 · Symétrique
+              </p>
+              <div id="dist-matrix-wrap" class="overflow-x-auto"></div>
+            </div>
+
+            <!-- ── Phylogenetic Tree tab ─────────────────────── -->
+            <div id="panel-tree" class="tab-panel">
+              <h3 id="tree-panel-title" class="text-sm font-semibold text-gray-800 mb-1">Arbre Neighbor-Joining</h3>
+              <p id="tree-panel-subtitle" class="text-xs text-gray-400 mb-3">
+                Saitou &amp; Nei 1987 · longueurs de branches = p-distance · Glisser pour naviguer
+              </p>
+              <div style="border:1px solid #e2e8f0;border-radius:0.75rem;overflow:hidden;background:#f8fafc;">
+                <canvas id="tree-canvas" width="600" height="420" class="w-full block"></canvas>
+              </div>
+              <div id="tree-legend" class="mt-2 flex flex-wrap gap-3 text-xs text-gray-500"></div>
+            </div>
+
+          </div><!-- /glass-card tabs -->
+        </div><!-- /results-wrap -->
+
+      </div><!-- /right col -->
+    </div><!-- /grid -->
+
+  </main>
+  </div><!-- /page-main -->
+
+  <!-- ══════════ TOOLTIP ══════════ -->
+  <div id="tooltip"
+    class="fixed pointer-events-none z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium shadow-lg"
+    style="background:rgba(15,23,42,.88);color:#f1f5f9;white-space:nowrap;display:none;"></div>
+
+  <!-- ══════════ SCRIPTS ══════════ -->
+  <script src="js/msa-analysis.js"></script>
+  <script src="js/sidebar.js"></script>
+
+  <script>
+  // ══════════════════════════════════════════════════════════════════════════
+  // State
+  // ══════════════════════════════════════════════════════════════════════════
+  let _result   = null;   // last pipeline result
+  let _records  = [];     // parsed records (for ref-select)
+
+  // Palette — up to 12 distinct colours for sequences
+  const SEQ_COLORS = [
+    '#2563eb','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2',
+    '#be185d','#65a30d','#ea580c','#4338ca','#0f766e','#b45309'
+  ];
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // UI helpers
+  // ══════════════════════════════════════════════════════════════════════════
+  function showTab(name) {
+    ['snp','hap','dist','tree'].forEach(t => {
+      document.getElementById('panel-' + t).classList.toggle('active', t === name);
+      document.getElementById('tab-'   + t).classList.toggle('active', t === name);
+    });
+    if (name === 'tree' && _result) renderTree();
+    if (name === 'dist' && _result) renderMatrix();
+  }
+
+  function showState(state) {
+    document.getElementById('empty-state').style.display    = state === 'empty'   ? '' : 'none';
+    document.getElementById('loading-state').style.display  = state === 'loading' ? '' : 'none';
+    document.getElementById('results-wrap').style.display   = state === 'results' ? '' : 'none';
+  }
+
+  function tooltip(el, msg) {
+    const t = document.getElementById('tooltip');
+    t.textContent = msg;
+    t.style.display = '';
+    el.addEventListener('mousemove', e => {
+      t.style.left = (e.clientX + 12) + 'px';
+      t.style.top  = (e.clientY - 28) + 'px';
+    }, { passive: true });
+    el.addEventListener('mouseleave', () => { t.style.display = 'none'; }, { once: true });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASTA input handling
+  // ══════════════════════════════════════════════════════════════════════════
+  function onFastaChange(text) {
+    _records = MSAAnalysis.parseFASTA(text);
+    const badge = document.getElementById('seq-count-badge');
+    const preview = document.getElementById('seq-preview');
+    const items   = document.getElementById('seq-preview-items');
+
+    if (_records.length < 1) {
+      badge.style.display   = 'none';
+      preview.style.display = 'none';
+      return;
+    }
+
+    badge.style.display = '';
+    document.getElementById('seq-count-num').textContent = _records.length;
+
+    // Rebuild ref selector
+    const sel = document.getElementById('ref-select');
+    sel.innerHTML = _records.map((r, i) =>
+      `<option value="${i}">${r.id}</option>`
+    ).join('');
+
+    // Sequence preview list
+    items.innerHTML = _records.slice(0, 8).map((r, i) => `
+      <div class="flex items-center gap-2 text-xs py-1 px-2 rounded-lg bg-gray-50 border border-gray-100">
+        <span style="width:8px;height:8px;border-radius:50%;background:${SEQ_COLORS[i % SEQ_COLORS.length]};flex-shrink:0;display:inline-block;"></span>
+        <span class="font-mono font-semibold text-gray-700 truncate" style="max-width:120px;">${r.id}</span>
+        <span class="ml-auto text-gray-400">${r.sequence.length} bp</span>
+      </div>`).join('') +
+      (_records.length > 8 ? `<p class="text-xs text-gray-400 pl-2">+${_records.length - 8} autres…</p>` : '');
+
+    preview.style.display = '';
+  }
+
+  function loadExample() {
+    document.getElementById('fasta-input').value = MSAAnalysis.EXAMPLE_FASTA;
+    onFastaChange(MSAAnalysis.EXAMPLE_FASTA);
+  }
+
+  function loadFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('fasta-input').value = ev.target.result;
+      onFastaChange(ev.target.result);
+    };
+    reader.readAsText(file);
+  }
+
+  function clearAll() {
+    document.getElementById('fasta-input').value = '';
+    _records = [];
+    _result  = null;
+    onFastaChange('');
+    showState('empty');
+    document.getElementById('export-card').style.display = 'none';
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Pipeline
+  // ══════════════════════════════════════════════════════════════════════════
+  function runAnalysis() {
+    const text = document.getElementById('fasta-input').value.trim();
+    if (!text) { alert('Veuillez saisir des séquences FASTA.'); return; }
+
+    const refIndex  = parseInt(document.getElementById('ref-select').value) || 0;
+    const treeMethod = document.getElementById('tree-method').value || 'nj';
+
+    showState('loading');
+    document.getElementById('run-btn').disabled = true;
+
+    // Defer to allow UI repaint
+    setTimeout(() => {
+      try {
+        const r = MSAAnalysis.runPipeline(text, refIndex, treeMethod);
+        document.getElementById('run-btn').disabled = false;
+
+        if (r.error) {
+          showState('empty');
+          alert('Erreur : ' + r.error + '\n' + (r.validation.errors || []).join('\n'));
+          return;
+        }
+
+        // Update tree tab label & panel title according to chosen method
+        const _treeMeta = {
+          nj: { label: 'Arbre NJ',   title: 'Arbre Neighbor-Joining',   sub: 'Saitou &amp; Nei 1987 · longueurs de branches = p-distance · Glisser pour naviguer' },
+          me: { label: 'Arbre ME',   title: 'Arbre Minimum Evolution',   sub: 'Rzhetsky &amp; Nei 1992 · somme des longueurs minimisée par OLS · Glisser pour naviguer' },
+          ml: { label: 'Arbre ML',   title: 'Arbre Maximum Likelihood',  sub: 'JC69 / Felsenstein 1981 · NNI + correction Jukes-Cantor · Glisser pour naviguer' }
+        };
+        const meta = _treeMeta[treeMethod] || _treeMeta['nj'];
+        document.getElementById('tab-tree').textContent         = meta.label;
+        document.getElementById('tree-panel-title').textContent = meta.title;
+        document.getElementById('tree-panel-subtitle').innerHTML = meta.sub;
+
+        _result = r;
+        renderResults(r);
+        showState('results');
+        document.getElementById('export-card').style.display = '';
+      } catch (err) {
+        document.getElementById('run-btn').disabled = false;
+        showState('empty');
+        alert('Erreur inattendue : ' + err.message);
+        console.error(err);
+      }
+    }, 30);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Render results
+  // ══════════════════════════════════════════════════════════════════════════
+  function renderResults(r) {
+    renderSummary(r.summary);
+    renderSNP(r.snpResult, r.summary.alignmentLength);
+    renderHaplotypes(r.haplotypes);
+    // matrix & tree rendered lazily on tab switch
+    showTab('snp');
+  }
+
+  // ── Summary stat boxes ─────────────────────────────────────────────────
+  function renderSummary(s) {
+    const stats = [
+      { label:'Séquences',      value: s.sequences,                  color:'violet' },
+      { label:'Sites variables',value: s.variableSites + ' (' + s.variability + '%)', color:'red' },
+      { label:'Haplotypes',     value: s.haplotypes + ' (div=' + s.haplotypeDiv + ')', color:'teal' },
+      { label:'p-dist moy.',    value: s.meanPairwiseDist.toFixed(4), color:'blue' },
+    ];
+    const colorMap = {
+      violet:'rgba(124,58,237,.08);color:#7c3aed;border-color:rgba(124,58,237,.18)',
+      red:   'rgba(239,68,68,.07);color:#ef4444;border-color:rgba(239,68,68,.2)',
+      teal:  'rgba(20,184,166,.07);color:#0f766e;border-color:rgba(20,184,166,.2)',
+      blue:  'rgba(37,99,235,.07);color:#2563eb;border-color:rgba(37,99,235,.2)',
+    };
+    document.getElementById('summary-stats').innerHTML = stats.map(s => `
+      <div class="stat-box" style="background:${colorMap[s.color]}">
+        <p class="text-xs text-gray-400 mb-0.5">${s.label}</p>
+        <p class="font-bold text-base" style="color:${s.color==='violet'?'#7c3aed':s.color==='red'?'#ef4444':s.color==='teal'?'#0f766e':'#2563eb'}">${s.value}</p>
+      </div>`).join('');
+  }
+
+  // ── SNP canvas lollipop ────────────────────────────────────────────────
+  function renderSNP(snpResult, alnLen) {
+    const entMin = parseFloat(document.getElementById('entropy-min').value) || 0;
+    const snps   = snpResult.snps.filter(s => s.entropy >= entMin);
+
+    document.getElementById('snp-count-label').textContent =
+      snps.length + ' SNP' + (snps.length > 1 ? 's' : '');
+
+    // Canvas lollipop
+    const canvas = document.getElementById('snp-canvas');
+    const W = canvas.offsetWidth || 600;
+    canvas.width = W;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, 70);
+
+    // Baseline
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, 68); ctx.lineTo(W, 68); ctx.stroke();
+
+    const maxH = 52;
+
+    for (const s of snps) {
+      const x = Math.round(((s.position - 1) / alnLen) * W);
+      const h = Math.max(8, Math.round((s.entropy / 1.5) * maxH));
+      const high = s.entropy > 0.5;
+      const col  = high ? '#7c3aed' : '#ef4444';
+
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x, 68); ctx.lineTo(x, 68 - h); ctx.stroke();
+
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(x, 68 - h - 5, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, 68 - h - 5, 4, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // Tooltip on hover
+    canvas.onmousemove = function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (W / rect.width);
+      const pos = Math.round((mx / W) * alnLen) + 1;
+      const near = snps.find(s => Math.abs(s.position - pos) <= Math.max(2, alnLen / 80));
+      const t = document.getElementById('tooltip');
+      if (near) {
+        const altStr = near.alts.map(a => `${a.base}:${(a.frequency*100).toFixed(0)}%`).join(', ');
+        t.textContent = `pos ${near.position} · réf:${near.ref} · alt:${altStr} · H=${near.entropy.toFixed(3)} bits`;
+        t.style.display = '';
+        t.style.left = (e.clientX + 12) + 'px';
+        t.style.top  = (e.clientY - 32) + 'px';
+      } else {
+        t.style.display = 'none';
+      }
+    };
+    canvas.onmouseleave = () => { document.getElementById('tooltip').style.display = 'none'; };
+
+    // SNP table
+    const tbody = document.getElementById('snp-tbody');
+    const empty = document.getElementById('snp-empty');
+    if (snps.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    tbody.innerHTML = snps.map(s => {
+      const altCells = s.alts.map(a =>
+        `<span class="inline-flex items-center gap-0.5 mr-1.5 px-1.5 py-0.5 rounded font-mono font-bold text-xs"
+          style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;">${a.base}</span>` +
+        `<span class="text-gray-500">${a.count} (${(a.frequency*100).toFixed(1)}%)</span>`
+      ).join(' · ');
+      const hClass = s.entropy > 0.5
+        ? 'font-bold text-violet-600' : 'text-gray-700';
+      return `<tr class="hover:bg-gray-50">
+        <td class="py-1.5 pr-3 font-mono font-bold text-gray-800">${s.position}</td>
+        <td class="py-1.5 pr-3">
+          <span class="nt-${s.ref} px-1.5 py-0.5 rounded font-mono font-bold text-xs">${s.ref}</span>
+        </td>
+        <td class="py-1.5 pr-3">${altCells}</td>
+        <td class="py-1.5 pr-3 text-gray-500">${s.gapCount}</td>
+        <td class="py-1.5 ${hClass}">${s.entropy.toFixed(3)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Haplotypes ─────────────────────────────────────────────────────────
+  function renderHaplotypes(haps) {
+    const barsEl = document.getElementById('hap-bars');
+    const tbody  = document.getElementById('hap-tbody');
+
+    barsEl.innerHTML = haps.map((h, i) => {
+      const pct = (h.frequency * 100).toFixed(1);
+      const col = SEQ_COLORS[i % SEQ_COLORS.length];
+      return `
+        <div class="flex items-center gap-3 text-xs">
+          <span class="font-semibold w-8 text-right text-gray-600">${h.haplotypeId}</span>
+          <div class="flex-1 rounded-full overflow-hidden" style="height:12px;background:#f1f5f9;">
+            <div style="width:${pct}%;height:100%;background:${col};border-radius:9999px;transition:width .4s;"></div>
+          </div>
+          <span class="w-16 text-right font-mono text-gray-500">${pct}% (${h.count})</span>
+        </div>`;
+    }).join('');
+
+    tbody.innerHTML = haps.map((h, i) => `
+      <tr class="hover:bg-gray-50">
+        <td class="py-1.5 pr-3">
+          <span class="font-semibold text-xs px-2 py-0.5 rounded-full"
+            style="background:${SEQ_COLORS[i%SEQ_COLORS.length]}22;color:${SEQ_COLORS[i%SEQ_COLORS.length]};border:1px solid ${SEQ_COLORS[i%SEQ_COLORS.length]}44;">
+            ${h.haplotypeId}
+          </span>
+        </td>
+        <td class="py-1.5 pr-3 text-gray-600">${h.members.join(', ')}</td>
+        <td class="py-1.5 pr-3 font-bold text-gray-800">${h.count}</td>
+        <td class="py-1.5 font-mono text-gray-700">${(h.frequency*100).toFixed(1)}%</td>
+      </tr>`).join('');
+  }
+
+  // ── Distance matrix heatmap ────────────────────────────────────────────
+  function renderMatrix() {
+    if (!_result) return;
+    const { labels, matrix } = _result.distanceMatrix;
+    const n     = labels.length;
+    // Find max for colour scaling
+    let maxDist = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) maxDist = Math.max(maxDist, matrix[i][j]);
+
+    function heatColor(v) {
+      // 0 = white, maxDist = deep red
+      const t = maxDist > 0 ? v / maxDist : 0;
+      const r = Math.round(255 - t * (255 - 239));
+      const g = Math.round(255 - t * (255 - 68));
+      const b = Math.round(255 - t * (255 - 68));
+      return `rgb(${r},${g},${b})`;
+    }
+    function textColor(v) {
+      const t = maxDist > 0 ? v / maxDist : 0;
+      return t > 0.5 ? '#fff' : '#1e293b';
+    }
+
+    const shortLabels = labels.map(l => l.length > 10 ? l.substring(0,9)+'…' : l);
+
+    const header = '<tr><th class="pb-1 pr-1 text-gray-400 font-normal text-xs" style="min-width:80px;"></th>' +
+      shortLabels.map(l => `<th class="pb-1 pr-1 text-gray-500 font-semibold text-xs" style="min-width:52px;">${l}</th>`).join('') + '</tr>';
+
+    const rows = matrix.map((row, i) =>
+      '<tr>' +
+      `<td class="pr-2 text-xs font-semibold text-gray-600 whitespace-nowrap">${shortLabels[i]}</td>` +
+      row.map((v, j) => {
+        const bg = i === j ? '#f8fafc' : heatColor(v);
+        const fg = i === j ? '#94a3b8' : textColor(v);
+        return `<td class="heatmap-cell" style="background:${bg};color:${fg};">${i===j ? '—' : v.toFixed(3)}</td>`;
+      }).join('') +
+      '</tr>'
+    ).join('');
+
+    document.getElementById('dist-matrix-wrap').innerHTML =
+      `<table class="border-separate" style="border-spacing:2px;"><thead>${header}</thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // ── NJ Tree (canvas drawing) ───────────────────────────────────────────
+  function renderTree() {
+    if (!_result) return;
+    const { nodes, edges, root } = _result.tree;
+    if (!root || nodes.length === 0) return;
+
+    const canvas = document.getElementById('tree-canvas');
+    const W = canvas.offsetWidth  || 600;
+    const H = canvas.height       || 420;
+    canvas.width = W;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    // ── Build adjacency (parent → children with branch length) ──────────
+    const children = {};
+    for (const e of edges) {
+      if (!children[e.source]) children[e.source] = [];
+      children[e.source].push({ id: e.target, len: e.length });
+    }
+
+    // ── Layout: cladogram-style (vertical spread, horizontal = depth) ───
+    const leaves = nodes.filter(n => n.type === 'leaf');
+    const nLeaf  = leaves.length;
+    const posMap = {};   // id → {x, y}
+
+    let leafIndex = 0;
+    const PAD_LEFT = 30, PAD_RIGHT = 160, PAD_TOP = 24, PAD_BOT = 24;
+    const drawW = W - PAD_LEFT - PAD_RIGHT;
+    const drawH = H - PAD_TOP  - PAD_BOT;
+
+    // Sum branch lengths from root to compute scale
+    function maxDepth(id, depth) {
+      const clist = children[id];
+      if (!clist || clist.length === 0) return depth;
+      return Math.max(...clist.map(c => maxDepth(c.id, depth + c.len)));
+    }
+    const totalDepth = maxDepth(root, 0) || 1;
+    const xScale = drawW / totalDepth;
+
+    function layout(id, x) {
+      const clist = children[id];
+      if (!clist || clist.length === 0) {
+        // Leaf: assign vertical position
+        const y = PAD_TOP + (leafIndex + 0.5) * (drawH / nLeaf);
+        posMap[id] = { x: PAD_LEFT + x, y };
+        leafIndex++;
+        return y;
+      }
+      // Internal node: y = average of children y
+      const ys = clist.map(c => layout(c.id, x + c.len * xScale));
+      const y = ys.reduce((a, b) => a + b, 0) / ys.length;
+      posMap[id] = { x: PAD_LEFT + x, y };
+      return y;
+    }
+    layout(root, 0);
+
+    // ── Draw edges ────────────────────────────────────────────────────────
+    for (const e of edges) {
+      const src = posMap[e.source];
+      const tgt = posMap[e.target];
+      if (!src || !tgt) continue;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      // Cladogram line: horizontal then vertical (elbow connector)
+      ctx.moveTo(src.x, src.y);
+      ctx.lineTo(tgt.x, src.y);   // horizontal to child x
+      ctx.lineTo(tgt.x, tgt.y);   // vertical to child y
+      ctx.stroke();
+    }
+
+    // ── Draw nodes ────────────────────────────────────────────────────────
+    for (const n of nodes) {
+      const p = posMap[n.id];
+      if (!p) continue;
+      if (n.type === 'leaf') {
+        // Leaf circle
+        const ci = leaves.findIndex(l => l.id === n.id);
+        const col = SEQ_COLORS[ci % SEQ_COLORS.length];
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(n.id.length > 18 ? n.id.substring(0,16)+'…' : n.id, p.x + 9, p.y + 4);
+      } else {
+        // Internal: small square
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(p.x - 4, p.y - 4, 8, 8);
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+        ctx.strokeRect(p.x - 4, p.y - 4, 8, 8);
+      }
+    }
+
+    // ── Branch length labels on leaf edges ────────────────────────────────
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (const e of edges) {
+      const src = posMap[e.source];
+      const tgt = posMap[e.target];
+      if (!src || !tgt || e.length < 0.0001) continue;
+      const isLeaf = nodes.find(n => n.id === e.target && n.type === 'leaf');
+      if (isLeaf) {
+        const midX = (src.x + tgt.x) / 2;
+        ctx.fillText(e.length.toFixed(4), midX, tgt.y - 7);
+      }
+    }
+
+    // ── Legend ────────────────────────────────────────────────────────────
+    document.getElementById('tree-legend').innerHTML =
+      leaves.map((l, i) => `
+        <span class="flex items-center gap-1">
+          <span style="width:10px;height:10px;border-radius:50%;background:${SEQ_COLORS[i%SEQ_COLORS.length]};display:inline-block;"></span>
+          ${l.id}
+        </span>`).join('');
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Export
+  // ══════════════════════════════════════════════════════════════════════════
+  function _download(content, filename, mime) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function exportJSON() {
+    if (!_result) return;
+    _download(JSON.stringify(_result.viz, null, 2), 'msa-analysis.json', 'application/json');
+  }
+
+  function exportSNPCSV() {
+    if (!_result) return;
+    const rows = ['position,ref,alts,entropy,gaps'];
+    for (const s of _result.snpResult.snps) {
+      const alts = s.alts.map(a => `${a.base}:${(a.frequency*100).toFixed(1)}%`).join(';');
+      rows.push(`${s.position},${s.ref},"${alts}",${s.entropy},${s.gapCount}`);
+    }
+    _download(rows.join('\n'), 'snp-table.csv', 'text/csv');
+  }
+
+  function exportNewick() {
+    if (!_result) return;
+    const { nodes, edges, root } = _result.tree;
+    const ch = {};
+    for (const e of edges) {
+      if (!ch[e.source]) ch[e.source] = [];
+      ch[e.source].push({ id: e.target, len: e.length });
+    }
+    function toNewick(id) {
+      const clist = ch[id];
+      if (!clist || clist.length === 0) return id;
+      return '(' + clist.map(c => toNewick(c.id) + ':' + c.len.toFixed(6)).join(',') + ')';
+    }
+    const nwk = toNewick(root) + ';';
+    _download(nwk, 'nj-tree.nwk', 'text/plain');
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Init
+  // ══════════════════════════════════════════════════════════════════════════
+  showState('empty');
+  </script>
+</body>
+</html>

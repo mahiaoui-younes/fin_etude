@@ -1,0 +1,559 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — Créer un compte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    .auth-bg {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 50%, #f0f9ff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 15% 25%, rgba(59,130,246,0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 75%, rgba(13,148,136,0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 60%);
+      z-index: 0;
+    }
+    .auth-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(229,231,235,0.8);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.07), 0 4px 20px rgba(59,130,246,0.06);
+      animation: card-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      padding: 0.625rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .social-btn:hover {
+      background: #f1f5f9;
+      border-color: #93c5fd;
+      color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .input-wrapper .input-field {
+      padding-left: 2.75rem;
+    }
+    .input-wrapper .input-toggle {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper .input-toggle:hover { color: #475569; }
+    .strength-bar {
+      display: flex;
+      gap: 3px;
+      margin-top: 6px;
+    }
+    .strength-segment {
+      height: 3px;
+      flex: 1;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      transition: background 0.3s ease;
+    }
+    .floating-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: orb-float 8s ease-in-out infinite;
+    }
+    @keyframes orb-float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%       { transform: translateY(-20px) scale(1.05); }
+    }
+    .dna-decoration {
+      position: absolute;
+      font-size: 5rem;
+      opacity: 0.04;
+      user-select: none;
+      pointer-events: none;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      transition: color 0.2s;
+    }
+    .check-item.valid { color: #10b981; }
+    .check-item .check-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .check-item.valid .check-dot { background: #10b981; }
+  </style>
+</head>
+<body class="font-sans" style="position:relative;">
+
+  <div class="auth-bg flex items-center justify-center px-4 py-12">
+
+    <!-- Decorative orbs -->
+    <div class="floating-orb w-72 h-72 bg-teal-400" style="top: -8%; left: 5%; animation-delay: 0s;"></div>
+    <div class="floating-orb w-52 h-52 bg-blue-400" style="bottom: 0%; right: 8%; animation-delay: 4s;"></div>
+    <div class="dna-decoration" style="top: 8%; right: 3%;">🧬</div>
+    <div class="dna-decoration" style="bottom: 6%; left: 2%; font-size: 4rem;">⚗️</div>
+
+    <div class="w-full max-w-md relative z-10">
+
+      <!-- Logo / Brand -->
+      <div class="text-center mb-8">
+        <a href="index.html" class="inline-flex flex-col items-center gap-2 group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform">
+            🧬
+          </div>
+          <span class="gradient-text text-2xl font-bold">EpitopX AI</span>
+          <span class="text-gray-400 text-sm" data-i18n="signup.subtitle">Analyse protéique structurale</span>
+        </a>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card p-8">
+
+        <!-- Header -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-gray-900" data-i18n="signup.title">Créer un compte</h1>
+          <p class="text-gray-500 text-sm mt-1" data-i18n="signup.desc">Rejoignez EpitopX AI et commencez vos analyses</p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <form id="signup-form" onsubmit="handleSignup(event)" novalidate>
+
+          <!-- First name + Last name -->
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-firstname" data-i18n="signup.firstname.label">
+                Prénom
+              </label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </span>
+                <input id="signup-firstname" type="text" class="input-field" placeholder="Prénom" data-i18n-placeholder="signup.firstname.placeholder" autocomplete="given-name" required />
+              </div>
+              <p id="firstname-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.firstname.error">Champ requis.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-lastname" data-i18n="signup.lastname.label">
+                Nom
+              </label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </span>
+                <input id="signup-lastname" type="text" class="input-field" placeholder="Nom" data-i18n-placeholder="signup.lastname.placeholder" autocomplete="family-name" required />
+              </div>
+              <p id="lastname-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.lastname.error">Champ requis.</p>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-username" data-i18n="signup.username.label">
+              Nom d'utilisateur
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </span>
+              <input id="signup-username" type="text" class="input-field" placeholder="nom_utilisateur" data-i18n-placeholder="signup.username.placeholder" autocomplete="username" required />
+            </div>
+            <p id="username-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.username.error">Veuillez choisir un nom d'utilisateur.</p>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-email" data-i18n="signup.email.label">
+              Adresse e-mail
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                </svg>
+              </span>
+              <input
+                id="signup-email"
+                type="email"
+                class="input-field"
+                placeholder="vous@exemple.com"
+                data-i18n-placeholder="signup.email.placeholder"
+                autocomplete="email"
+              />
+            </div>
+            <p id="signup-email-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.email.error">Veuillez entrer une adresse e-mail valide.</p>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-password" data-i18n="signup.password.label">
+              Mot de passe
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </span>
+              <input
+                id="signup-password"
+                type="password"
+                class="input-field"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                oninput="checkPasswordStrength(this.value)"
+                required
+              />
+              <button type="button" class="input-toggle" onclick="togglePasswordField('signup-password', this)" aria-label="Afficher le mot de passe">
+                <svg id="eye-show-signup" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eye-hide-signup" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Password strength bar -->
+            <div class="strength-bar">
+              <div id="seg1" class="strength-segment"></div>
+              <div id="seg2" class="strength-segment"></div>
+              <div id="seg3" class="strength-segment"></div>
+              <div id="seg4" class="strength-segment"></div>
+            </div>
+            <div id="strength-label" class="text-xs mt-1 text-gray-400"></div>
+
+            <!-- Password requirements -->
+            <div class="mt-2 grid grid-cols-2 gap-1">
+              <div id="req-len" class="check-item"><span class="check-dot"></span> <span data-i18n="signup.req.len">8 caractères min.</span></div>
+              <div id="req-upper" class="check-item"><span class="check-dot"></span> <span data-i18n="signup.req.upper">Majuscule</span></div>
+              <div id="req-num" class="check-item"><span class="check-dot"></span> <span data-i18n="signup.req.num">Chiffre</span></div>
+              <div id="req-special" class="check-item"><span class="check-dot"></span> <span data-i18n="signup.req.special">Caractère spécial</span></div>
+            </div>
+            <p id="signup-password-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.password.error">Le mot de passe doit contenir au moins 8 caractères.</p>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="mb-5">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="signup-confirm" data-i18n="signup.confirm.label">
+              Confirmer le mot de passe
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </span>
+              <input
+                id="signup-confirm"
+                type="password"
+                class="input-field"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                required
+              />
+              <button type="button" class="input-toggle" onclick="togglePasswordField('signup-confirm', this)" aria-label="Afficher le mot de passe">
+                <svg id="eye-show-confirm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eye-hide-confirm" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
+            </div>
+            <p id="confirm-error" class="text-red-500 text-xs mt-1 hidden" data-i18n="signup.confirm.error">Les mots de passe ne correspondent pas.</p>
+          </div>
+
+          <!-- Terms -->
+          <div class="flex items-start gap-2 mb-5">
+            <input id="accept-terms" type="checkbox" class="w-4 h-4 mt-0.5 rounded border-gray-300 cursor-pointer accent-blue-600" required>
+            <label for="accept-terms" class="text-sm text-gray-600 cursor-pointer select-none leading-snug">
+              <span data-i18n="signup.terms.text">J'accepte les</span>
+              <a href="#" class="text-blue-600 hover:underline font-medium" data-i18n="signup.terms.link">Conditions d'utilisation</a>
+              <span data-i18n="signup.terms.and">et la</span>
+              <a href="#" class="text-blue-600 hover:underline font-medium" data-i18n="signup.privacy.link">Politique de confidentialité</a>
+            </label>
+          </div>
+          <p id="terms-error" class="text-red-500 text-xs -mt-3 mb-4 hidden" data-i18n="signup.terms.error">Vous devez accepter les conditions.</p>
+
+          <!-- Error Banner -->
+          <div id="signup-error-banner" class="hidden mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="signup-error-text" data-i18n="signup.error">Une erreur est survenue. Veuillez réessayer.</span>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="signup-btn" class="btn-primary w-full flex items-center justify-center gap-2">
+            <span id="signup-btn-text" data-i18n="signup.btn">Créer mon compte</span>
+            <svg id="signup-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="auth-divider my-5" data-i18n="signup.divider">ou s'inscrire avec</div>
+
+        <!-- Social Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+          <button class="social-btn" onclick="handleSocialSignup('google')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button class="social-btn" onclick="handleSocialSignup('github')">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+
+        <!-- Login link -->
+        <p class="text-center text-sm text-gray-500 mt-6">
+          <span data-i18n="signup.alreadyAccount">Déjà un compte ?</span>
+          <a href="login.html" class="text-blue-600 hover:text-blue-700 font-semibold" data-i18n="signup.login">Se connecter</a>
+        </p>
+
+      </div>
+
+      <!-- Language switcher -->
+      <div class="flex justify-center mt-5">
+        <select class="lang-select" style="max-width:200px;" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+
+      <!-- Footer note -->
+      <p class="text-center text-xs text-gray-400 mt-4">
+        <span data-i18n="signup.gdpr">Vos données sont protégées conformément au RGPD.</span>
+        <a href="#" class="text-blue-500 hover:underline" data-i18n="signup.gdprLink">En savoir plus</a>
+      </p>
+
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script>
+    async function handleSignup(e) {
+      e.preventDefault();
+      const firstname = document.getElementById('signup-firstname').value.trim();
+      const lastname  = document.getElementById('signup-lastname').value.trim();
+      const username  = document.getElementById('signup-username').value.trim();
+      const email     = document.getElementById('signup-email').value.trim();
+      const password  = document.getElementById('signup-password').value;
+      const confirm   = document.getElementById('signup-confirm').value;
+      const terms     = document.getElementById('accept-terms').checked;
+      let valid = true;
+
+      ['firstname-error','lastname-error','username-error','signup-email-error','signup-password-error','confirm-error','terms-error','signup-error-banner'].forEach(id =>
+        document.getElementById(id).classList.add('hidden')
+      );
+
+      if (!firstname) { document.getElementById('firstname-error').classList.remove('hidden'); valid = false; }
+      if (!lastname)  { document.getElementById('lastname-error').classList.remove('hidden');  valid = false; }
+      if (!username)  { document.getElementById('username-error').classList.remove('hidden');  valid = false; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('signup-email-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!password || password.length < 8) {
+        document.getElementById('signup-password-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (password !== confirm) {
+        document.getElementById('confirm-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!terms) {
+        document.getElementById('terms-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!valid) return;
+
+      const btn     = document.getElementById('signup-btn');
+      const btnText = document.getElementById('signup-btn-text');
+      const spinner = document.getElementById('signup-spinner');
+      btn.disabled = true;
+        btnText.textContent = t('signup.loading');
+      spinner.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/users/register/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username,
+            email,
+            password,
+            password_confirm: confirm,
+            first_name: firstname,
+            last_name: lastname
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.href = 'login.html';
+        } else {
+          const firstKey = Object.keys(data)[0];
+          const firstVal = data[firstKey];
+          const msg = Array.isArray(firstVal) ? firstVal[0] : (data.detail || t('signup.error'));
+          document.getElementById('signup-error-banner').classList.remove('hidden');
+          document.getElementById('signup-error-text').textContent = msg;
+        }
+      } catch (err) {
+        document.getElementById('signup-error-banner').classList.remove('hidden');
+        document.getElementById('signup-error-text').textContent = t('signup.error');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = t('signup.btn');
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function togglePasswordField(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      const showIcon = btn.querySelector('[id^="eye-show"]');
+      const hideIcon = btn.querySelector('[id^="eye-hide"]');
+      showIcon.classList.toggle('hidden', isPassword);
+      hideIcon.classList.toggle('hidden', !isPassword);
+    }
+
+    function checkPasswordStrength(value) {
+      const hasLen     = value.length >= 8;
+      const hasUpper   = /[A-Z]/.test(value);
+      const hasNum     = /[0-9]/.test(value);
+      const hasSpecial = /[^A-Za-z0-9]/.test(value);
+
+      toggleReq('req-len',     hasLen);
+      toggleReq('req-upper',   hasUpper);
+      toggleReq('req-num',     hasNum);
+      toggleReq('req-special', hasSpecial);
+
+      const score = [hasLen, hasUpper, hasNum, hasSpecial].filter(Boolean).length;
+      const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+      const labels = ['Très faible', 'Faible', 'Moyen', 'Fort'];
+      const labelColors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500'];
+
+      for (let i = 1; i <= 4; i++) {
+        const seg = document.getElementById('seg' + i);
+        seg.style.background = i <= score ? colors[score - 1] : '#e2e8f0';
+      }
+
+      const lbl = document.getElementById('strength-label');
+      if (value.length === 0) {
+        lbl.textContent = '';
+      } else {
+        lbl.textContent = labels[score - 1] || 'Très faible';
+        lbl.className = 'text-xs mt-1 ' + (labelColors[score - 1] || 'text-red-500');
+      }
+    }
+
+    function toggleReq(id, valid) {
+      const el = document.getElementById(id);
+      el.classList.toggle('valid', valid);
+    }
+
+    function handleSocialSignup(provider) {
+      // TODO: Replace with actual OAuth flow
+      alert(`Inscription via ${provider} — à connecter à l'API.`);
+    }
+  </script>
+</body>
+</html>

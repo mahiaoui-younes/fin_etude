@@ -1,0 +1,447 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — Paramètres</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside id="sidebar" class="app-sidebar">
+    <div class="sb-top">
+      <a href="index.html" class="sb-brand">
+        <div class="sb-brand-orb">🧬</div>
+        <div class="sb-brand-text-wrap">
+          <span class="sb-brand-name">EpitopX <span>AI</span></span>
+          <span class="sb-brand-sub" data-i18n="brand.sub">Bioinformatique locale</span>
+        </div>
+      </a>
+      <button class="sb-pin-btn" onclick="toggleSidebar()" id="sb-pin-btn" title="Réduire" data-i18n-title="nav.collapse">
+        <svg id="sb-collapse-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <svg id="sb-expand-icon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <nav class="sb-nav">
+      <span class="sb-group-label" data-i18n="nav.label">Navigation</span>
+      <a href="index.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.home">Accueil</span>
+      </a>
+      <a href="dashboard.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+      <a href="my-proteins.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.myProteins">Mes Protéines</span>
+      </a>
+      <a href="viewer.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.viewer3d">Viewer 3D</span>
+      </a>
+      <a href="compare.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.compare">Comparer</span>
+      </a>
+      <a href="epitope-search.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.epitopeSearch">Rech. Épitopes</span>
+      </a>
+      <a href="protein-search.html" class="sb-item">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.uniprotSearch">Rech. UniProt</span>
+      </a>
+      <a href="ncbi-search.html" class="sb-item" title="Rech. NCBI">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.ncbi">Rech. NCBI</span>
+      </a>      <a href="dna-alignment.html" class="sb-item" title="Alignement ADN">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></div>
+        <span class="sb-item-label">Alignement ADN</span>
+      </a>
+      <a href="msa-analysis.html" class="sb-item" title="Analyse MSA">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label">Analyse MSA</span>
+      </a>
+      <a href="settings.html" class="sb-item sb-item--active" title="Paramètres">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.settings">Paramètres</span>
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-status">
+        <span class="sb-status-dot"></span>
+        <span class="sb-item-label" style="color:#64748b;font-size:0.8125rem;" data-i18n="nav.serverActive">Serveur actif</span>
+      </div>
+      <span style="font-size:0.625rem;color:#94a3b8;">v1.0 · Mode local</span>
+      <div class="lang-switcher">
+        <select class="lang-select" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+  <button class="sidebar-open-btn" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- ══════════ PAGE MAIN ══════════ -->
+  <div id="page-main" class="page-main">
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-1">Para<span class="gradient-text" data-i18n="settings.title">mètres</span></h1>
+      <p class="text-gray-400 text-sm" data-i18n="settings.subtitle">Gérez votre compte et vos préférences</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-8 bg-gray-100 p-1 rounded-xl w-fit flex-wrap">
+      <button class="settings-tab active" data-tab="profile" onclick="switchTab('profile')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span data-i18n="settings.tab.profile">Mon Profil</span>
+      </button>
+      <button class="settings-tab" data-tab="security" onclick="switchTab('security')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <span data-i18n="settings.tab.security">Sécurité</span>
+      </button>
+      <button class="settings-tab" data-tab="prefs" onclick="switchTab('prefs')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        <span data-i18n="settings.tab.prefs">Préférences</span>
+      </button>
+      <button class="settings-tab" data-tab="danger" onclick="switchTab('danger')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span data-i18n="settings.tab.account">Compte</span>
+      </button>
+    </div>
+
+    <!-- ── TAB: PROFILE ── -->
+    <div id="tab-profile" class="tab-panel">
+
+      <!-- Avatar card -->
+      <div class="glass-card p-6 mb-6 flex items-center gap-6">
+        <div id="settings-avatar"
+          class="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shrink-0"
+          style="background: linear-gradient(135deg,#2563eb,#0d9488);">
+          ?
+        </div>
+        <div>
+          <p id="settings-username-display" class="text-xl font-bold text-gray-900">—</p>
+          <p id="settings-email-display" class="text-sm text-gray-400 mt-0.5">—</p>
+          <span class="inline-flex items-center gap-1.5 mt-2 text-xs text-emerald-600 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> <span data-i18n="settings.profile.activeAccount">Compte actif</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Profile form -->
+      <div class="glass-card p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span data-i18n="settings.profile.header">Informations personnelles</span>
+        <form id="profile-form" onsubmit="saveProfile(event)" autocomplete="off">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.profile.firstname">Prénom</label>
+              <input type="text" id="pf-firstname" class="input-field" placeholder="Votre prénom" data-i18n-placeholder="settings.profile.firstname.ph">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.profile.lastname">Nom</label>
+              <input type="text" id="pf-lastname" class="input-field" placeholder="Votre nom" data-i18n-placeholder="settings.profile.lastname.ph">
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.profile.username">Nom d'utilisateur</label>
+            <input type="text" id="pf-username" class="input-field bg-gray-50" placeholder="username" readonly
+              style="cursor:not-allowed;opacity:0.7;">
+            <p class="text-xs text-gray-400 mt-1" data-i18n="settings.profile.username.note">Le nom d'utilisateur ne peut pas être modifié.</p>
+          </div>
+          <div class="mb-6">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.profile.email">Adresse e-mail</label>
+            <input type="email" id="pf-email" class="input-field" placeholder="votre@email.com" data-i18n-placeholder="settings.profile.email.ph">
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit" id="profile-save-btn" class="btn-primary px-6 py-2 text-sm" data-i18n="settings.profile.save">
+              Enregistrer les modifications
+            </button>
+            <span id="profile-status" class="text-xs text-gray-400 hidden"></span>
+          </div>
+        </form>
+      </div>
+
+    </div><!-- /tab-profile -->
+
+    <!-- ── TAB: SECURITY ── -->
+    <div id="tab-security" class="tab-panel hidden">
+      <div class="glass-card p-6 mb-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          <span data-i18n="settings.security.header">Changer le mot de passe</span>
+        </h2>
+        <form id="password-form" onsubmit="changePassword(event)" autocomplete="off">
+          <div class="mb-4">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.security.currentPw">Mot de passe actuel</label>
+            <div class="relative">
+              <input type="password" id="pw-current" class="input-field pr-10" placeholder="••••••••" required>
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="togglePw('pw-current')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.security.newPw">Nouveau mot de passe</label>
+            <div class="relative">
+              <input type="password" id="pw-new" class="input-field pr-10" placeholder="••••••••" required minlength="8" oninput="checkPasswordStrength()">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="togglePw('pw-new')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <!-- Password strength bar -->
+            <div class="mt-2 flex gap-1">
+              <div class="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden"><div id="pw-str-1" class="h-full rounded-full transition-colors duration-300 bg-gray-200"></div></div>
+              <div class="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden"><div id="pw-str-2" class="h-full rounded-full transition-colors duration-300 bg-gray-200"></div></div>
+              <div class="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden"><div id="pw-str-3" class="h-full rounded-full transition-colors duration-300 bg-gray-200"></div></div>
+              <div class="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden"><div id="pw-str-4" class="h-full rounded-full transition-colors duration-300 bg-gray-200"></div></div>
+            </div>
+            <p id="pw-str-label" class="text-xs text-gray-400 mt-1"></p>
+          </div>
+          <div class="mb-6">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5" data-i18n="settings.security.confirmPw">Confirmer le nouveau mot de passe</label>
+            <div class="relative">
+              <input type="password" id="pw-confirm" class="input-field pr-10" placeholder="••••••••" required>
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="togglePw('pw-confirm')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit" id="pw-save-btn" class="btn-primary px-6 py-2 text-sm" data-i18n="settings.security.save">
+              Changer le mot de passe
+            </button>
+            <span id="pw-status" class="text-xs hidden"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Token info card -->
+      <div class="glass-card p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span data-i18n="settings.security.token.header">Jeton d'authentification</span>
+        </h2>
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-400 mb-1" data-i18n="settings.security.token.active">Token actif</p>
+              <p id="token-display" class="font-mono text-xs text-gray-600 truncate" style="max-width:28rem;">—</p>
+            </div>
+            <button onclick="copyToken()" class="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span data-i18n="settings.security.token.copy">Copier</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-security -->
+
+    <!-- ── TAB: PREFERENCES ── -->
+    <div id="tab-prefs" class="tab-panel hidden">
+      <div class="glass-card p-6 mb-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+          <span data-i18n="settings.prefs.lang.header">Langue de l'interface</span>
+        </h2>
+        <div class="grid grid-cols-4 gap-3 max-w-lg">
+          <button onclick="setLangAndSave('fr')" id="lang-fr"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇫🇷</span>
+            <span class="text-xs font-medium">Français</span>
+          </button>
+          <button onclick="setLangAndSave('en')" id="lang-en"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇬🇧</span>
+            <span class="text-xs font-medium">English</span>
+          </button>
+          <button onclick="setLangAndSave('ar')" id="lang-ar"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇩🇿</span>
+            <span class="text-xs font-medium">العربية</span>
+          </button>
+          <button onclick="setLangAndSave('es')" id="lang-es"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇪🇸</span>
+            <span class="text-xs font-medium">Español</span>
+          </button>
+          <button onclick="setLangAndSave('de')" id="lang-de"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇩🇪</span>
+            <span class="text-xs font-medium">Deutsch</span>
+          </button>
+          <button onclick="setLangAndSave('zh')" id="lang-zh"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇨🇳</span>
+            <span class="text-xs font-medium">中文</span>
+          </button>
+          <button onclick="setLangAndSave('pt')" id="lang-pt"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇧🇷</span>
+            <span class="text-xs font-medium">Português</span>
+          </button>
+          <button onclick="setLangAndSave('ru')" id="lang-ru"
+            class="lang-pref-btn flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all">
+            <span class="text-2xl">🇷🇺</span>
+            <span class="text-xs font-medium">Русский</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- About app -->
+      <div class="glass-card p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span data-i18n="settings.prefs.about.header">À propos</span>
+        </h2>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500" data-i18n="settings.prefs.about.app">Application</span>
+            <span class="text-sm font-medium text-gray-900">EpitopX AI</span>
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500" data-i18n="settings.prefs.about.version">Version</span>
+            <span class="tag tag-violet text-xs">v1.0</span>
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500" data-i18n="settings.prefs.about.server">Serveur API</span>
+            <span id="about-server" class="text-xs font-mono text-gray-600 truncate max-w-xs text-right">—</span>
+          </div>
+          <div class="flex items-center justify-between py-2">
+            <span class="text-sm text-gray-500" data-i18n="settings.prefs.about.status">Statut</span>
+            <span class="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+              <span class="animate-pulse"></span>
+              <span data-i18n="settings.prefs.about.connected">Connecté</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-prefs -->
+
+    <!-- ── TAB: DANGER / ACCOUNT ── -->
+    <div id="tab-danger" class="tab-panel hidden">
+
+      <!-- Session info -->
+      <div class="glass-card p-6 mb-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span data-i18n="settings.account.session.header">Session</span>
+        </h2>
+        <p class="text-sm text-gray-500 mb-5"><span data-i18n="settings.account.session.desc">Vous êtes actuellement connecté en tant que</span> <strong id="session-username" class="text-gray-900">—</strong>.</p>
+        <button onclick="doLogout()" class="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span data-i18n="settings.account.logout">Se déconnecter</span>
+        </button>
+      </div>
+
+      <!-- Delete account -->
+      <div class="glass-card p-6 border border-red-100">
+        <h2 class="text-base font-semibold text-red-600 mb-2 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span data-i18n="settings.account.danger.header">Zone de danger</span>
+        </h2>
+        <p class="text-sm text-gray-500 mb-5" data-i18n="settings.account.danger.desc">La suppression de votre compte est définitive et irréversible. Toutes vos données seront effacées.</p>
+        <button onclick="openDeleteAccountModal()" class="flex items-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition-colors border border-red-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span data-i18n="settings.account.deleteBtn">Supprimer mon compte</span>
+        </button>
+      </div>
+    </div><!-- /tab-danger -->
+
+  </main>
+
+  <!-- Delete account modal -->
+  <div id="delete-account-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900" data-i18n="settings.delete.title">Supprimer le compte</h3>
+          <p class="text-xs text-gray-400" data-i18n="settings.delete.irreversible">Action irréversible.</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 mb-4"><span data-i18n="settings.delete.confirm.type">Tapez</span> <strong class="text-red-600" id="delete-confirm-username">votre nom d'utilisateur</strong> <span data-i18n="settings.delete.confirm.type2">pour confirmer.</span></p>
+      <input type="text" id="delete-account-confirm-input" class="input-field mb-5" placeholder="Nom d'utilisateur" data-i18n-placeholder="settings.delete.confirmInput">
+      <div class="flex gap-3">
+        <button onclick="closeDeleteAccountModal()" class="flex-1 btn-secondary text-sm" data-i18n="settings.delete.cancel">Annuler</button>
+        <button onclick="confirmDeleteAccount()" id="delete-account-btn"
+          class="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition-colors" data-i18n="settings.delete.confirmBtn">
+          Supprimer définitivement
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🧬</span>
+          <span class="font-semibold gradient-text">EpitopX AI</span>
+          <span class="text-xs text-gray-300">v1.0</span>
+        </div>
+        <p class="text-xs text-gray-400" data-i18n="settings.footer">Analyse structurale de protéines de Theileria</p>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /page-main -->
+
+  <style>
+    .settings-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.625rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .settings-tab:hover { color: #1e293b; background: rgba(0,0,0,0.04); }
+    .settings-tab.active { background: #fff; color: #2563eb; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .lang-pref-btn { border-color: #e2e8f0; background: #fff; color: #374151; cursor: pointer; }
+    .lang-pref-btn:hover { border-color: #93c5fd; background: #eff6ff; }
+    .lang-pref-btn.selected { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+  </style>
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — Alignement Multiple ADN</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    /* ── Nucleotide colours ─────────────────────────────────────────── */
+    .nt-A { background:#bbf7d0; color:#14532d; }
+    .nt-T { background:#fecaca; color:#7f1d1d; }
+    .nt-G { background:#bfdbfe; color:#1e3a8a; }
+    .nt-C { background:#fef08a; color:#713f12; }
+    .nt-gap { background:#f1f5f9; color:#94a3b8; }
+    .nt-U { background:#e9d5ff; color:#4c1d95; }
+    .nt-N { background:#e5e7eb; color:#6b7280; }
+
+    /* ── Alignment viewer ──────────────────────────────────────────── */
+    .align-viewer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+    }
+    .align-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .align-label {
+      min-width: 160px;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 10px;
+      font-weight: 600;
+      color: #475569;
+      padding-right: 8px;
+      flex-shrink: 0;
+    }
+    .align-seq {
+      display: inline-flex;
+      gap: 0;
+    }
+    .nt-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 18px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 2px;
+      margin: 0 0.5px;
+    }
+    .consensus-row .nt-cell {
+      border-bottom: 2px solid #2563eb;
+    }
+    /* conservation bar */
+    .conserv-cell {
+      display: inline-flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: 14px;
+      height: 18px;
+      margin: 0 0.5px;
+    }
+    .conserv-bar {
+      width: 8px;
+      border-radius: 1px 1px 0 0;
+      background: #2563eb;
+      opacity: 0.8;
+    }
+
+    /* ── Ruler ─────────────────────────────────────────────────────── */
+    .align-ruler {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .ruler-label {
+      min-width: 160px;
+      flex-shrink: 0;
+      font-size: 9px;
+      color: #94a3b8;
+      padding-right: 8px;
+    }
+    .ruler-tick {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 12px;
+      font-size: 8px;
+      color: #94a3b8;
+      margin: 0 0.5px;
+    }
+
+    /* ── Seq input area ─────────────────────────────────────────────── */
+    .seq-textarea {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      resize: vertical;
+      min-height: 180px;
+    }
+    /* ── Sequence badge ─────────────────────────────────────────────── */
+    .seq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    /* ── Stats grid ─────────────────────────────────────────────────── */
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.625rem;
+      padding: 0.625rem 0.875rem;
+    }
+    /* ── Loading shimmer ─────────────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+    }
+    /* ── Identity matrix ────────────────────────────────────────────── */
+    .matrix-cell {
+      width: 52px;
+      height: 28px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* ── Sequence info row ──────────────────────────────────────────── */
+    .seq-info-row {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0.625rem;
+      border-radius: 0.5rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      gap: 0.625rem;
+      margin-bottom: 0.375rem;
+      transition: background 0.1s;
+    }
+    .seq-info-row:hover { background: #eff6ff; }
+    .seq-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside id="sidebar" class="app-sidebar">
+    <div class="sb-top">
+      <a href="index.html" class="sb-brand">
+        <div class="sb-brand-orb">🧬</div>
+        <div class="sb-brand-text-wrap">
+          <span class="sb-brand-name">EpitopX <span>AI</span></span>
+          <span class="sb-brand-sub" data-i18n="brand.sub">Bioinformatique locale</span>
+        </div>
+      </a>
+      <button class="sb-pin-btn" onclick="toggleSidebar()" id="sb-pin-btn" title="Réduire">
+        <svg id="sb-collapse-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <svg id="sb-expand-icon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <nav class="sb-nav">
+      <span class="sb-group-label" data-i18n="nav.label">Navigation</span>
+      <a href="index.html" class="sb-item" title="Accueil">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.home">Accueil</span>
+      </a>
+      <a href="dashboard.html" class="sb-item" title="Dashboard">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+      <a href="my-proteins.html" class="sb-item" title="Mes Protéines">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+        <span class="sb-item-label">Mes Protéines</span>
+      </a>
+      <a href="viewer.html" class="sb-item" title="Viewer 3D">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.viewer3d">Viewer 3D</span>
+      </a>
+      <a href="compare.html" class="sb-item" title="Comparer">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.compare">Comparer</span>
+      </a>
+      <a href="epitope-search.html" class="sb-item" title="Rech. Épitopes">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.epitopeSearch">Rech. Épitopes</span>
+      </a>
+      <a href="protein-search.html" class="sb-item" title="Rech. UniProt">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.uniprotSearch">Rech. UniProt</span>
+      </a>
+      <a href="ncbi-search.html" class="sb-item" title="Rech. NCBI">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.ncbi">Rech. NCBI</span>
+      </a>
+      <!-- DNA Alignment — active -->
+      <a href="dna-alignment.html" class="sb-item active" title="Alignement ADN">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 10h16M4 14h10M4 18h7"/>
+          </svg>
+        </div>
+        <span class="sb-item-label">Alignement ADN</span>
+      </a>
+      <a href="msa-analysis.html" class="sb-item" title="Analyse MSA">
+        <div class="sb-item-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <span class="sb-item-label">Analyse MSA</span>
+      </a>
+      <a href="settings.html" class="sb-item" title="Paramètres">
+        <div class="sb-item-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <span class="sb-item-label" data-i18n="nav.settings">Paramètres</span>
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-status">
+        <span class="sb-status-dot"></span>
+        <span class="sb-item-label" style="color:#64748b;font-size:0.8125rem;" data-i18n="nav.serverActive">Serveur actif</span>
+      </div>
+      <span style="font-size:0.625rem;color:#94a3b8;" data-i18n="nav.localMode">v1.0 · Mode local</span>
+      <div class="lang-switcher">
+        <select class="lang-select" onchange="setLang(this.value)" aria-label="Language">
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+  <button class="sidebar-open-btn" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- ══════════ PAGE MAIN ══════════ -->
+  <div id="page-main" class="page-main">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4"
+           style="background:rgba(37,99,235,0.08);color:#2563eb;border:1px solid rgba(37,99,235,0.15);">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/>
+        </svg>
+        Alignement Multiple de Séquences
+      </div>
+      <h1 class="text-3xl font-bold mb-3 text-gray-900">
+        Alignement Multiple <span class="gradient-text">ADN</span>
+      </h1>
+      <p class="text-gray-400 max-w-2xl mx-auto text-sm">
+        Alignez plusieurs séquences d'ADN simultanément. Visualisez la conservation, les gaps et la similarité entre séquences.
+      </p>
+    </div>
+
+    <!-- ── API status banner (shown when API not configured) ──────── -->
+    <div id="api-status-banner" class="mb-6 p-3 rounded-xl flex items-center gap-3 text-sm"
+         style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);display:none!important;">
+      <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+      <span class="text-amber-700">API d'alignement non configurée — mode <strong>local</strong> actif (Needleman-Wunsch).</span>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+
+      <!-- ══════════════════════════════════════════════
+           LEFT COLUMN — Input + Parameters
+      ══════════════════════════════════════════════ -->
+      <div class="lg:col-span-1 space-y-5">
+
+        <!-- Sequence input card -->
+        <div class="glass-card p-5">
+          <h2 class="text-sm font-semibold mb-4 flex items-center gap-2 text-gray-900">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Séquences d'entrée
+            <span id="seq-count-badge" class="ml-auto seq-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;display:none;">
+              <span id="seq-count-num">0</span> séquences
+            </span>
+          </h2>
+
+          <!-- FASTA textarea -->
+          <label class="text-xs text-gray-400 mb-1 block">Format FASTA (≥ 2 séquences)</label>
+          <textarea id="fasta-input" class="input-field seq-textarea w-full mb-2"
+            placeholder=">Seq1_Theileria_annulata&#10;ATGCGATCGATCGATCGATCGAATCGATCGATCG&#10;>Seq2_Theileria_parva&#10;ATGCGATCGATCGATTGATCGAATCGATCGATCG&#10;>Seq3_Theileria_orientalis&#10;ATGCGCTCGATCGATCGATCGAATCGATCGATCG"
+            oninput="onFastaInput(this.value)"></textarea>
+
+          <div class="flex gap-2 mb-3">
+            <button class="btn-secondary flex-1 text-xs py-1.5" onclick="loadExample()">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              Exemple
+            </button>
+            <label class="btn-secondary flex-1 text-xs py-1.5 cursor-pointer text-center">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              Fichier .fa
+              <input type="file" accept=".fa,.fasta,.fna,.txt" class="hidden" onchange="loadFastaFile(event)">
+            </label>
+            <button class="btn-secondary text-xs py-1.5 px-3" onclick="clearInput()" title="Effacer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Detected sequences list -->
+          <div id="seq-list-preview" class="space-y-1" style="display:none;">
+            <p class="text-xs text-gray-400 mb-1.5">Séquences détectées</p>
+            <div id="seq-list-items"></div>
+          </div>
+        </div>
+
+        <!-- Parameters card -->
+        <div class="glass-card p-5">
+          <h2 class="text-sm font-semibold mb-4 flex items-center gap-2 text-gray-900">
+            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Paramètres d'alignement
+          </h2>
+
+          <div class="space-y-3">
+            <!-- Algorithm -->
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Algorithme</label>
+              <select id="algo-select" class="input-field text-sm">
+                <option value="local" selected>API MSA (a381-41-98-106-109.ngrok-free.app)</option>
+                <option value="nw">Needleman-Wunsch (local)</option>
+                <option value="star">Star Alignment (local)</option>
+              </select>
+            </div>
+
+            <!-- Gap penalties -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block">Pénalité ouverture gap</label>
+                <input type="number" id="gap-open" class="input-field text-sm" value="-2" min="-20" max="0">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block">Pénalité extension gap</label>
+                <input type="number" id="gap-extend" class="input-field text-sm" value="-1" min="-10" max="0">
+              </div>
+            </div>
+
+            <!-- Match / Mismatch -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block">Score match</label>
+                <input type="number" id="match-score" class="input-field text-sm" value="1" min="0" max="10">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 mb-1 block">Score mismatch</label>
+                <input type="number" id="mismatch-score" class="input-field text-sm" value="-1" min="-10" max="0">
+              </div>
+            </div>
+
+            <!-- Output options -->
+            <div>
+              <label class="text-xs text-gray-400 mb-1.5 block">Affichage</label>
+              <div class="flex flex-wrap gap-2">
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input type="checkbox" id="show-consensus" checked class="w-3 h-3">
+                  Consensus
+                </label>
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input type="checkbox" id="show-conservation" checked class="w-3 h-3">
+                  Conservation
+                </label>
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input type="checkbox" id="show-ruler" checked class="w-3 h-3">
+                  Règle
+                </label>
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input type="checkbox" id="color-nt" checked class="w-3 h-3">
+                  Couleurs
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Run button -->
+          <button id="run-btn" class="btn-primary w-full mt-5 flex items-center justify-center gap-2"
+                  onclick="runAlignment()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Lancer l'alignement
+          </button>
+        </div>
+
+      </div><!-- end left col -->
+
+      <!-- ══════════════════════════════════════════════
+           RIGHT COLUMN — Results
+      ══════════════════════════════════════════════ -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Empty state -->
+        <div id="empty-state" class="glass-card p-12 flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+               style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(13,148,136,.1));">
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M4 6h16M4 10h16M4 14h10M4 18h7"/>
+            </svg>
+          </div>
+          <p class="font-semibold text-gray-700 mb-1">Aucun alignement</p>
+          <p class="text-xs text-gray-400">Entrez vos séquences FASTA et cliquez sur <strong>Lancer l'alignement</strong>.</p>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loading-state" class="glass-card p-8" style="display:none;">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-5 h-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+            <span class="text-sm font-medium text-gray-700" id="loading-msg">Alignement en cours…</span>
+          </div>
+          <div class="space-y-3">
+            <div class="shimmer h-4 w-full"></div>
+            <div class="shimmer h-4 w-5/6"></div>
+            <div class="shimmer h-4 w-4/6"></div>
+            <div class="shimmer h-4 w-full"></div>
+            <div class="shimmer h-4 w-3/4"></div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results-container" style="display:none;" class="space-y-5">
+
+          <!-- Stats row -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="stats-row"></div>
+
+          <!-- Alignment viewer card -->
+          <div class="glass-card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold flex items-center gap-2 text-gray-900">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h7"/>
+                </svg>
+                Visualisation de l'alignement
+              </h2>
+              <div class="flex gap-2">
+                <button class="btn-secondary text-xs py-1 px-2.5" onclick="copyAlignmentText()" title="Copier FASTA aligné">
+                  <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  Copier
+                </button>
+                <button class="btn-secondary text-xs py-1 px-2.5" onclick="downloadFasta()" title="Télécharger FASTA">
+                  <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  FASTA
+                </button>
+              </div>
+            </div>
+            <!-- Block window navigation -->
+            <div id="block-nav" class="flex items-center gap-2 mb-3" style="display:none!important;">
+              <span class="text-xs text-gray-400">Bloc</span>
+              <button class="btn-secondary text-xs py-0.5 px-2" onclick="prevBlock()">◀</button>
+              <span id="block-indicator" class="text-xs font-mono text-gray-600">1 / 1</span>
+              <button class="btn-secondary text-xs py-0.5 px-2" onclick="nextBlock()">▶</button>
+              <span class="text-xs text-gray-400 ml-1" id="block-range"></span>
+              <input type="range" id="block-slider" min="0" max="0" value="0"
+                     class="ml-2 flex-1" oninput="goToBlock(parseInt(this.value))">
+            </div>
+            <div id="alignment-viewer" class="align-viewer"></div>
+          </div>
+
+          <!-- Identity matrix -->
+          <div class="glass-card p-5" id="matrix-card">
+            <h2 class="text-sm font-semibold mb-4 flex items-center gap-2 text-gray-900">
+              <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
+              </svg>
+              Matrice d'identité (%)
+            </h2>
+            <div id="identity-matrix" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- Aligned FASTA output -->
+          <div class="glass-card p-5">
+            <h2 class="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900">
+              <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+              </svg>
+              Résultat FASTA aligné
+            </h2>
+            <pre id="fasta-output" class="seq-textarea input-field overflow-auto text-xs"
+                 style="min-height:120px;max-height:240px;white-space:pre;"></pre>
+          </div>
+
+        </div><!-- end results-container -->
+      </div><!-- end right col -->
+    </div><!-- end grid -->
+  </main>
+  </div><!-- end page-main -->
+
+  <!-- ══════════ SCRIPTS ══════════ -->
+  <script src="js/utils.js"></script>
+  <script src="js/bg-particles.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/dna-alignment.js"></script>
+</body>
+</html>

@@ -62,12 +62,13 @@ var Auth = typeof Auth !== 'undefined' ? Auth : (() => {
   }
 
   /**
-   * Returns true if a token is currently held.
+   * Returns true if a token is currently held in this tab's session.
    *
    * @returns {boolean}
    */
   function isAuthenticated() {
-    return true; // AUTH DISABLED FOR DEV
+    if (_token !== null) return true;
+    try { return sessionStorage.getItem('_authSession') === '1'; } catch (_) { return false; }
   }
 
   return { setAuthToken, clearAuthToken, getAuthToken, isAuthenticated };

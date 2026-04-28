@@ -592,6 +592,22 @@
 
   </div><!-- /page-main -->
 
+  <!-- ══════════ LOGIN-REQUIRED MODAL ══════════ -->
+  <div id="auth-modal-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:1.25rem;padding:2rem 2rem 1.75rem;max-width:22rem;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.18);text-align:center;position:relative;">
+      <div style="width:3.25rem;height:3.25rem;border-radius:1rem;background:linear-gradient(135deg,#3b82f6,#0d9488);display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;">
+        <svg style="width:1.5rem;height:1.5rem;color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin-bottom:0.4rem;">Connexion requise</h3>
+      <p style="font-size:0.875rem;color:#64748b;margin-bottom:1.5rem;line-height:1.5;">Vous devez être connecté pour accéder à cette page.</p>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <a id="auth-modal-login-btn" href="login.html" style="display:block;padding:0.65rem 1rem;border-radius:0.625rem;background:linear-gradient(135deg,#3b82f6,#0d9488);color:#fff;font-size:0.875rem;font-weight:600;text-decoration:none;text-align:center;">Se connecter</a>
+        <a id="auth-modal-signup-btn" href="signup.html" style="display:block;padding:0.65rem 1rem;border-radius:0.625rem;border:1.5px solid #e2e8f0;color:#334155;font-size:0.875rem;font-weight:500;text-decoration:none;text-align:center;">Créer un compte</a>
+        <button onclick="document.getElementById('auth-modal-overlay').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.8rem;cursor:pointer;padding:0.25rem;">Annuler</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="js/i18n.js"></script>
   <script src="js/dataset.js"></script>
@@ -603,5 +619,42 @@
   <script src="js/auth.js"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/home.js"></script>
+
+  <!-- Route guard: redirect guests to login before leaving the home page -->
+  <script>
+    (function () {
+      // Pages that don't require authentication
+      var PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', ''];
+
+      function isPublicHref(href) {
+        if (!href || href.startsWith('#')) return true;
+        try {
+          var url = new URL(href, location.href);
+          if (url.origin !== location.origin) return true; // external link
+          var page = url.pathname.split('/').pop() || 'index.html';
+          return PUBLIC_PAGES.indexOf(page) !== -1;
+        } catch (_) { return true; }
+      }
+
+      document.addEventListener('click', function (e) {
+        var anchor = e.target.closest('a[href]');
+        if (!anchor) return;
+        if (isPublicHref(anchor.getAttribute('href'))) return;
+
+        // Check auth after auth.js is loaded
+        if (typeof Auth !== 'undefined' && Auth.isAuthenticated()) return;
+
+        e.preventDefault();
+        var overlay = document.getElementById('auth-modal-overlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+          // Store intended destination so user lands there after login
+          try {
+            sessionStorage.setItem('_authRedirect', anchor.href);
+          } catch (_) {}
+        }
+      }, true);
+    })();
+  </script>
 </body>
 </html>

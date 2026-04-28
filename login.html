@@ -366,7 +366,13 @@
           if (token) Auth.setAuthToken(token);
           if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
           localStorage.setItem('authUser', JSON.stringify({ username }));
-          window.location.replace('dashboard.html');
+          // Redirect to the page the guest tried to visit, or dashboard
+          let redirect = 'dashboard.html';
+          try {
+            const stored = sessionStorage.getItem('_authRedirect');
+            if (stored) { sessionStorage.removeItem('_authRedirect'); redirect = stored; }
+          } catch (_) {}
+          window.location.replace(redirect);
         } else {
           const msg = data.non_field_errors?.[0] || data.detail || t('login.error');
           document.getElementById('login-error-banner').classList.remove('hidden');
